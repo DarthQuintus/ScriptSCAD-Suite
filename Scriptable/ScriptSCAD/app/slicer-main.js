@@ -7,7 +7,7 @@
 // 9e: Druckplatte mit mehreren Objekten; STL aus der Dateien-App (Kopie in slicer/stl/).
 // 9a: STL aus Studio (projects/<id>/export/*.stl) mit CuraEngine slicen, G-Code speichern/teilen. 9b: Studio-Layout, 3D-Vorschau, Zeitachse.
 
-const VERSION = '10o.1'; // bei jeder Lieferung erhöhen
+const VERSION = '10o.2'; // bei jeder Lieferung erhöhen
 const CHUNK = 262144;
 const GCODE_CHUNK = 524288;
 const LOG_MAX_LINES = 600;

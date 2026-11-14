@@ -83,9 +83,9 @@
   /* 9g: Start-/End-G-Code */
   .gcLabel { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .gcEdit { display: block; width: 100%; box-sizing: border-box; font: 12.5px/1.5 var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 0; background: var(--field); color: var(--fg); resize: vertical; white-space: pre; overflow: auto; flex: 0 0 auto; }
-  #screenList .listHead { display: flex; align-items: center; gap: 10px; }
+  #screenList .listHead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   #screenList .listHead h2 { flex: 1; }
-  #btnImport { min-height: 36px; padding: 6px 12px; font-size: 14px; }
+  #btnImport, #btnNewPlate { min-height: 36px; padding: 6px 12px; font-size: 14px; }
   .secHead { margin: 10px 0 2px; font-size: 13px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
   .secHead:first-child { margin-top: 0; }
   .ctl { flex-wrap: nowrap; min-height: 40px; }
@@ -158,7 +158,7 @@
     <section id="screenList">
       <div class="listHead"><h2 id="plateHead" class="hidden"></h2></div>
       <ul id="plateList"></ul>
-      <div class="listHead"><h2 id="listTitle"></h2><button id="btnSettings"></button><button id="btnImport"></button></div>
+      <div class="listHead"><h2 id="listTitle"></h2><button id="btnNewPlate" class="primary"></button><button id="btnSettings"></button><button id="btnImport"></button></div>
       <ul id="projectList"></ul>
       <p id="emptyList" class="hint hidden"></p>
     </section>

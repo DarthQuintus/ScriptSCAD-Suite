@@ -1,5 +1,5 @@
 {
- "version": "10o.1",
- "zip": "https://github.com/DarthQuintus/ScriptSCAD-Suite/releases/download/v10o.1/ScriptSCAD-10o.1-update.zip",
- "notes": "Erste öffentliche Version: About & licenses in both apps. / First public release."
+ "version": "10o.2",
+ "zip": "https://github.com/DarthQuintus/ScriptSCAD-Suite/releases/download/v10o.2/ScriptSCAD-10o.2-update.zip",
+ "notes": "Slicer: neue leere Druckplatte. Über & Lizenzen in beiden Apps. / Slicer: new empty print plate. About & licenses in both apps."
 }

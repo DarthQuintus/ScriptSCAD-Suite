@@ -5,7 +5,7 @@
 //  - Dateien liest/schreibt nur Scriptable. Die Seite rendert mit OpenSCAD (WASM) und zeigt das Modell.
 (function () {
   'use strict';
-  const APP_VERSION = '10o.1'; // muss zu VERSION in main.js passen
+  const APP_VERSION = '10o.2'; // muss zu VERSION in main.js passen
   const SAVE_DELAY_MS = 2000; // automatisch speichern, so lange nach der letzten Änderung
   const SLOW_RENDER_MS = 500; // länger → Regler rendern nur noch beim Loslassen
   const FAST_RENDER_MS = 250; // wieder so schnell → wieder live

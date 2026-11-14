@@ -9,7 +9,7 @@
 // darunter Zeitachse (▶, Zeit-Regler) und Schicht-Regler. Oben: Slicen, G-Code exportieren (Teilen / In Dateien).
 (function () {
   'use strict';
-  const VERSION = '10o.1';
+  const VERSION = '10o.2';
   const $ = (id) => document.getElementById(id);
   const fmt = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v && k in v ? v[k] : ''));
   let T = window.SLICER_I18N.de;
@@ -383,7 +383,7 @@
   }
   // Titel: Liste = App-Name, sonst Name der Druckplatte (wie Studio den Projektnamen)
   function updateTitle() {
-    const t = inProject() ? (hasObjects() || plate.name ? plateTitle() : '…') : T.appName;
+    const t = inProject() ? (hasObjects() || plate.name ? plateTitle() : plate.blank ? T.newPlateTitle : '…') : T.appName;
     $('titleText').textContent = t;
     $('navName').textContent = inProject() ? t : '';
   }
@@ -484,6 +484,8 @@
     refreshPlate(true);
   }
   function newPlate(src) { resetPlate(null); addModel(src); }
+  // 10o.2: leere Druckplatte – Objekte danach mit „+ STL“ hinzufügen
+  function newEmptyPlate() { if (busy) return; resetPlate(null); plate.blank = true; updateTitle(); status(T.emptyPlate); }
   function loadPlate(p) { if (busy) return; queue({ type: 'loadPlate', id: p.id }); status(T.loadingModel); }
   // Gespeicherte Platte (von Scriptable gelesen): Objekte mit ihrer Lage nachladen
   function plateData(d) {
@@ -1560,6 +1562,7 @@
     $('tabParams').textContent = T.tabParams;
     $('tabObjects').textContent = T.tabObjects;
     $('btnImport').textContent = T.importGcode;
+    $('btnNewPlate').textContent = T.newPlate;
     iconButton('btnSettings', ICON.settings, T.settingsTitle, T.settingsTitle);
     $('mode3d').textContent = T.mode3d;
     $('modeLayer').textContent = T.modeLayer;
@@ -1687,6 +1690,7 @@
   $('timeSlider').addEventListener('input', (e) => { stopPlay(); showPaths(); setTime((+e.target.value / 1000) * result.tp.totalTime, 'time'); });
   $('btnPlay').addEventListener('click', () => { showPaths(); playing ? stopPlay() : startPlay(); });
   $('btnImport').addEventListener('click', () => { if (!busy) queue({ type: 'importGcode' }); });
+  $('btnNewPlate').addEventListener('click', newEmptyPlate);
   $('btnSettings').addEventListener('click', openSettings);
   // Tastenkürzel wie Studio (Hardware-Tastatur): ⌘1/2/3 Reiter, ⌘↩ Slicen, ⌘Z / ⇧⌘Z Rückgängig/Wiederholen (außerhalb von Eingabefeldern)
   document.addEventListener('keydown', (e) => {

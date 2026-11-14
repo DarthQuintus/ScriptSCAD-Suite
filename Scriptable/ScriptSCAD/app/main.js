@@ -8,7 +8,7 @@
 //  - Kein setTimeout in Scriptable → Timer.
 //  - WASM als base64 in 256-KB-Stücken übertragen, in der Seite einmal kompilieren.
 
-const VERSION = '10o.1'; // bei jeder Lieferung erhöhen – steht im Protokoll und in der Kopfzeile
+const VERSION = '10o.2'; // bei jeder Lieferung erhöhen – steht im Protokoll und in der Kopfzeile
 const CHUNK = 262144;
 const LOG_MAX_LINES = 600;
 const APP_FILES = ['index.html', 'style.css', 'app.js', 'vctl.js', 'ui-common.js', 'about.js', 'export.js', 'update-quelle.json', 'i18n.js', 'params.js', 'objects.js', 'projekte.js', 'beispiel.scad', 'beispiel-en.scad', 'lib/viewer.js', 'lib/editor.js', 'lib/scad-hints.js', 'lib/openscad.js', 'lib/openscad.wasm', 'bibliothek/scriptscad.scad',

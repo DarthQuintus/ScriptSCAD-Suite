@@ -49,7 +49,7 @@ ScriptSCAD besteht aus zwei [Scriptable](https://scriptable.app)-Skripten:
 - Rund 300 Drucker aus der Cura-Bibliothek plus eigene Drucker mit Start-/End-G-Code
 - Einstellungen aus G-Code von Cura, PrusaSlicer/SuperSlicer, Bambu Studio/OrcaSlicer oder Simplify3D übernehmen
 - Einfache Einstellungen (Material, Temperaturen, Schichthöhe, Wände, Füllung, Stützen, Haftung …) plus Experten-Bereich (Naht, Bügeln, Vasen-Modus, Füllmuster); als Profile speichern
-- Mehrere Objekte pro Druckplatte: verschieben, drehen, skalieren, auf eine Fläche legen, anordnen; automatische Netz-Reparatur
+- Mit leerer Druckplatte oder einem Modell beginnen; mehrere Objekte pro Druckplatte: verschieben, drehen, skalieren, auf eine Fläche legen, anordnen; automatische Netz-Reparatur
 - Vorschau in 3D, je Schicht und als G-Code, mit Zeitregler und Abspielen; Druckzeit und Filamentverbrauch
 - G-Code teilen/speichern oder an **OctoPrint**, **Klipper (Moonraker)** oder **PrusaLink** senden
 
