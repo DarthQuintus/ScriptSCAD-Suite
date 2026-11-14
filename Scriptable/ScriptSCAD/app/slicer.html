@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ScriptSCAD Slicer</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Slicer-Ergänzungen zum Studio-Design (style.css) */
+  .badgeTest { font: 600 12px var(--mono); color: var(--accentText); border: 1px solid var(--accent); border-radius: 6px; padding: 2px 6px; margin-left: 8px; }
+  /* 9e.2: Aufbau wie Studio (#screenProject, #codePane, #splitter, #view als Karte) – Regeln dafür kommen aus style.css */
+  #codePane { min-height: 0; }
+  #summary { flex: 0 0 auto; padding: 8px 12px; background: var(--solid); border: 1px solid var(--line); }
+  #summary:empty { display: none; }
+  #plateWarn { font-size: 12.5px; color: var(--warn); line-height: 1.4; }
+  #objBar { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 56px; display: flex; align-items: center; gap: 10px; max-width: calc(100% - 20px);
+    background: var(--solid); border: 1px solid var(--accent); padding: 6px 6px 6px 12px; }
+  #objInfo { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  #btnRemoveObj { min-height: 34px; padding: 4px 12px; font-size: 13px; }
+  #plateList .del { flex: 0 0 auto; min-height: 40px; min-width: 44px; padding: 0 10px; font-size: 20px; }
+  #plateList { margin-bottom: 18px; }
+  #addDialog, #askDialog, #setDialog { position: fixed; inset: 0; z-index: 30; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .netRow { flex-wrap: wrap; }
+  .netRow input { flex: 1 1 180px; min-width: 0; min-height: 40px; padding: 6px 10px; font: inherit; border: 1px solid var(--line); border-radius: 10px; background: var(--field, var(--solid)); color: var(--fg); }
+  #setBox { background: var(--solid); width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.25); padding: 16px; }
+  #setBox h3 { margin: 0 0 12px; font-size: 18px; }
+  #setBox .setGroup { margin: 12px 0; }
+  #setBox .setGroup .lbl { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  #setBox .segs { display: flex; }
+  #setBox .segs button { flex: 1; border-radius: 0; }
+  #setBox .segs button:first-child { border-radius: 10px 0 0 10px; }
+  #setBox .segs button:last-child { border-radius: 0 10px 10px 0; }
+  #setBox .segs button + button { border-left: none; }
+  #setBox .segs button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #setBox .note { font-size: 12.5px; color: var(--muted); }
+  #setBox .foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+  #addBox { background: var(--solid); width: 100%; max-width: 520px; max-height: 85%; display: flex; flex-direction: column; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.25); overflow: hidden; }
+  #addHead { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+  #addHead h3 { flex: 1; margin: 0; font-size: 17px; }
+  #addList { flex: 1 1 auto; overflow: auto; list-style: none; margin: 0; padding: 8px 12px; }
+  #addList li { margin: 4px 0; }
+  #addList .open { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 1px; min-height: 44px; }
+  #addList .date { font-size: 12px; font-weight: 400; color: var(--muted); }
+  #addFoot { padding: 10px 12px; border-top: 1px solid var(--line); }
+  #btnAddFiles { width: 100%; }
+  #askBox { background: var(--solid); width: 100%; max-width: 420px; border-radius: 14px; padding: 18px; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  #askBox h3 { margin: 0 0 8px; font-size: 18px; }
+  #askText { margin: 0 0 10px; color: var(--muted); }
+  #askText:empty { display: none; }
+  #askInput { display: block; width: 100%; font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--field); color: var(--fg); margin-bottom: 12px; }
+  #askBox .buttons { display: flex; justify-content: flex-end; gap: 10px; }
+  /* Rechts unten in der Ansicht: Druckerzeile, darunter die Kennzahlen nebeneinander */
+  #infoBox { position: absolute; z-index: 3; right: 10px; bottom: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; max-width: calc(100% - 150px); pointer-events: none; }
+  #printerLine { font-size: 12.5px; color: var(--fg); background: var(--solid); border: 1px solid var(--line); padding: 4px 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #stats { display: flex; justify-content: flex-end; gap: 6px; }
+  #stats div { background: var(--solid); border: 1px solid var(--line); padding: 5px 9px; min-width: 0; text-align: right; }
+  #stats b { display: block; font: 600 14px var(--mono); white-space: nowrap; }
+  #stats span { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  #setPane, #printerPane, #objBox { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; background: var(--solid); border: 1px solid var(--line); }
+  .setRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .setRow .lbl { color: var(--muted); font-size: 13px; min-width: 80px; }
+  .segs { display: inline-flex; }
+  .segs button { border-radius: 0; min-height: 36px; padding: 6px 14px; }
+  .segs button:first-child { border-radius: 9px 0 0 9px; }
+  .segs button:last-child { border-radius: 0 9px 9px 0; }
+  .segs button + button { border-left: none; }
+  .segs button.on { background: var(--accent); color: var(--onAccent); border-color: var(--accent); }
+  .note { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
+  .warnNote { color: var(--warn); }
+  #setPane, #printerPane { gap: 6px; }
+  /* 9f: Reiter „Objekte“ – Liste und Regler wie Studios Objekt-Editor (#objBox, .objRow, .inspector, .vrow aus style.css) */
+  #objBox { gap: 0; padding: 4px 12px 14px; }
+  #objBox .pTools { display: flex; gap: 8px; justify-content: flex-end; padding: 8px 0 2px; }
+  #objBox .pTools button { min-height: 36px; }
+  #objBox .objRow .objName { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #objBox .objRow .objSum { text-align: right; white-space: nowrap; }
+  #objBox .insHead { margin: 10px 0 5px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  #objBox .insBtns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  #objBox .vrow + .vrow { margin-top: 6px; }
+  #objBox .inspector .setRow { margin-bottom: 6px; }
+  #objBox .inspector .setRow .lbl { color: var(--fg); font-size: 14px; flex: 1; }
+  #objBox .note { margin: 12px 0; }
+  /* 9g: Start-/End-G-Code */
+  .gcLabel { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .gcEdit { display: block; width: 100%; box-sizing: border-box; font: 12.5px/1.5 var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 0; background: var(--field); color: var(--fg); resize: vertical; white-space: pre; overflow: auto; flex: 0 0 auto; }
+  #screenList .listHead { display: flex; align-items: center; gap: 10px; }
+  #screenList .listHead h2 { flex: 1; }
+  #btnImport { min-height: 36px; padding: 6px 12px; font-size: 14px; }
+  .secHead { margin: 10px 0 2px; font-size: 13px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .secHead:first-child { margin-top: 0; }
+  .ctl { flex-wrap: nowrap; min-height: 40px; }
+  .ctl .lbl { flex: 0 0 34%; min-width: 0; color: var(--fg); font-size: 14px; }
+  .ctl .vctl { flex: 1 1 auto; }
+  .ctl .vbar .vunit { min-width: 2.2em; }
+  .ctl .segs button { padding: 6px 10px; min-height: 34px; font-size: 14px; }
+  #setPane select, #printerPane select { font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--field); color: var(--fg); max-width: 100%; }
+  #printerBtn { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left; min-height: 44px; }
+  #printerBtn .pname { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #printerBtn .pmore { color: var(--muted); font-weight: 400; }
+  #gcodePane { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: var(--solid); padding-top: 52px; } /* oben Platz für Status + Umschalter */
+  #gcodeHead { order: 2; padding: 5px 12px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+  #gcode { flex: 1 1 auto; margin: 0; padding: 6px 0; overflow: auto; font: 12px/1.55 var(--mono); color: var(--cm-fg); white-space: pre; -webkit-user-select: text; user-select: text; }
+  #gcode .ln { display: inline-block; width: 4.6em; padding-right: .8em; text-align: right; color: var(--cm-gutter-fg); }
+  #gcode div { padding: 0 12px 0 0; }
+  #gcode .c { color: var(--syn-comment); }
+  #gcode .g { color: var(--syn-builtin); }
+  #gcode .cur { background: var(--accentSoft); box-shadow: inset 3px 0 0 var(--accent); }
+  #gcode .hint { padding: 12px; color: var(--muted); white-space: normal; font-family: var(--sans); }
+  #view { display: flex; flex-direction: column; min-height: 0; background: var(--bg0); }
+  #stage { position: relative; flex: 1 1 auto; min-height: 0; touch-action: none; }
+  #layerCanvas { z-index: 1; background: var(--bg0); }
+  #viewSwitch { position: absolute; z-index: 4; right: 10px; top: 10px; }
+  #stage #status.chip { max-width: calc(100% - 260px); } /* nicht unter den Umschalter 3D | Schicht | G-Code laufen */
+  /* Legende links an der Wand, Einträge untereinander */
+  #legend { position: absolute; z-index: 3; left: 0; bottom: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; font-size: 12px; background: var(--solid); border: 1px solid var(--line); border-left: none; padding: 6px 10px 6px 8px; }
+  #legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  #timeline { flex: 0 0 auto; border-top: 1px solid var(--line); background: var(--solid); padding: 6px 12px 8px; display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: center; }
+  #timeline input[type=range] { width: 100%; accent-color: var(--accent); min-height: 34px; margin: 0; }
+  #timeline .val { font: 12.5px var(--mono); white-space: nowrap; text-align: right; min-width: 9.5em; }
+  #timeline .lbl { font-size: 12px; color: var(--muted); }
+  #btnPlay { min-width: 44px; padding: 6px 10px; grid-row: span 2; }
+  #exportBox .buttons { display: flex; flex-direction: column; gap: 8px; }
+  /* Druckerauswahl mit Suche (9d) */
+  #pickDialog { position: fixed; inset: 0; z-index: 30; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #pickBox { background: var(--solid); width: 100%; max-width: 520px; height: 85%; display: flex; flex-direction: column; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.25); overflow: hidden; }
+  #pickHead { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+  #pickHead h3 { flex: 1; margin: 0; font-size: 17px; }
+  #printerSearch { display: block; width: calc(100% - 24px); margin: 10px 12px 6px; font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--field); color: var(--fg); }
+  #printerResults { flex: 1 1 auto; overflow: auto; list-style: none; margin: 0; padding: 0 12px 12px; }
+  #printerResults .grp { margin: 12px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  #printerResults button { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 1px; margin: 3px 0; min-height: 44px; }
+  #printerResults button.cur { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+  #printerResults .pm { font-size: 12px; font-weight: 400; color: var(--muted); }
+  #printerResults .none { padding: 16px 4px; color: var(--muted); }
+  @media (max-width: 700px) { #infoBox { max-width: calc(100% - 20px); bottom: auto; top: 104px; } #stats b { font-size: 13px; }
+    #stage #status.chip { top: 58px; max-width: calc(100% - 20px); } #objBar { top: 104px; } }
+</style>
+</head>
+<body>
+  <!-- wie Studio (8c): Titel in der Scriptable-Leiste im Hochformat -->
+  <div id="navTitle" class="hidden"><svg class="logo" viewBox="12 14 76 72" aria-hidden="true"><path d="M34 22c-6 0-8 3-8 8v9c0 4-2 8-7 11 5 3 7 7 7 11v9c0 5 2 8 8 8M66 22c6 0 8 3 8 8v9c0 4 2 8 7 11-5 3-7 7-7 11v9c0 5-2 8-8 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><polygon points="50,37 62,44 50,51 38,44" fill="#FF7A4D"/><polygon points="38,44 50,51 50,64 38,57" fill="#D93A0B"/><polygon points="50,51 62,44 62,57 50,64" fill="#FF4F1A"/></svg><span class="navText"><span id="navApp" class="brand"><b>ScriptSCAD</b> <span>Slicer</span></span><span id="navProj"><span id="navName"></span><span id="navDirty"></span></span></span></div>
+  <header>
+    <button id="btnBack" class="hidden"></button>
+    <h1 id="title"><svg class="logo" viewBox="12 14 76 72" aria-hidden="true"><path d="M34 22c-6 0-8 3-8 8v9c0 4-2 8-7 11 5 3 7 7 7 11v9c0 5 2 8 8 8M66 22c6 0 8 3 8 8v9c0 4 2 8 7 11-5 3-7 7-7 11v9c0 5-2 8-8 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><polygon points="50,37 62,44 50,51 38,44" fill="#FF7A4D"/><polygon points="38,44 50,51 50,64 38,57" fill="#D93A0B"/><polygon points="50,51 62,44 62,57 50,64" fill="#FF4F1A"/></svg><span id="titleText"></span><span id="testBadge" class="badgeTest"></span></h1>
+    <span class="tools projOnly hidden">
+      <button id="btnAdd"></button>
+      <button id="btnSavePlate" disabled></button>
+      <span id="viewModes" class="modes"><button id="modeEdit" class="mode"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="modeBoth" class="mode on"><svg class="rot" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 4.5v15" stroke="currentColor" stroke-width="2"/><path d="M5.5 8.5h2M5.5 11.5h2M5.5 14.5h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><button id="modeView" class="mode"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9Z M4 7.5 12 12l8-4.5 M12 12v9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></button></span>
+      <button id="btnSlice" class="primary" disabled></button>
+      <button id="btnExport" disabled></button>
+    </span>
+    <button id="btnLog"></button>
+  </header>
+  <div id="bar"></div>
+  <div id="status"></div>
+
+  <main>
+    <section id="screenList">
+      <div class="listHead"><h2 id="plateHead" class="hidden"></h2></div>
+      <ul id="plateList"></ul>
+      <div class="listHead"><h2 id="listTitle"></h2><button id="btnSettings"></button><button id="btnImport"></button></div>
+      <ul id="projectList"></ul>
+      <p id="emptyList" class="hint hidden"></p>
+    </section>
+
+    <section id="screenProject" class="hidden">
+      <div id="codePane">
+        <div id="summary" class="hidden"><div id="plateWarn"></div></div>
+        <div id="paneTabs"><button id="tabPrinter" class="seg"></button><button id="tabParams" class="seg on"></button><button id="tabObjects" class="seg"></button></div>
+        <div id="printerPane" class="setPane hidden"></div>
+        <div id="setPane" class="setPane"></div>
+        <div id="objBox" class="setPane hidden"></div>
+      </div>
+      <div id="splitter" role="separator" tabindex="0"><span class="grip"></span></div>
+      <div id="view">
+        <div id="stage">
+          <canvas id="layerCanvas" class="hidden"></canvas>
+          <div id="gcodePane" class="hidden">
+            <div id="gcodeHead"></div>
+            <div id="gcode"></div>
+          </div>
+          <span id="viewSwitch" class="segs"><button id="mode3d" class="on"></button><button id="modeLayer"></button><button id="modeGcode"></button></span>
+          <div id="legend" class="hidden"></div>
+          <div id="infoBox"><div id="printerLine"></div><div id="stats" class="hidden"></div></div>
+          <div id="objBar" class="hidden"><span id="objInfo"></span><button id="btnRemoveObj" class="danger"></button></div>
+        </div>
+        <div id="timeline">
+          <button id="btnPlay" disabled>▶</button>
+          <input id="timeSlider" type="range" min="0" max="1000" value="1000" disabled>
+          <span class="val" id="timeInfo"></span>
+          <input id="layerSlider" type="range" min="0" max="0" value="0" disabled>
+          <span class="val" id="layerInfo"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- „+ STL“: Modell zur Druckplatte hinzufügen -->
+  <div id="addDialog" class="hidden">
+    <div id="addBox">
+      <div id="addHead"><h3 id="addTitle"></h3><button id="btnAddClose"></button></div>
+      <ul id="addList"></ul>
+      <div id="addFoot"><button id="btnAddFiles"></button></div>
+    </div>
+  </div>
+  <!-- Frage/Name (eigener Dialog) -->
+  <div id="askDialog" class="hidden">
+    <div id="askBox">
+      <h3 id="askTitle"></h3>
+      <p id="askText"></p>
+      <input id="askInput" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="buttons"><button id="btnAskCancel"></button><button id="btnAskAlt" class="hidden"></button><button id="btnAskOk" class="primary"></button></div>
+    </div>
+  </div>
+
+  <!-- Druckerauswahl mit Suche -->
+  <div id="pickDialog" class="hidden">
+    <div id="pickBox">
+      <div id="pickHead"><h3 id="pickTitle"></h3><button id="btnPickClose"></button></div>
+      <input id="printerSearch" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div id="printerResults"></div>
+    </div>
+  </div>
+
+  <div id="logSplit" role="separator" tabindex="0"><span class="grip"></span></div>
+  <div id="logwrap"><pre id="log"></pre></div>
+  <div id="toast"></div>
+
+  <!-- G-Code exportieren: Teilen oder In Dateien sichern -->
+  <div id="dialog" class="hidden">
+    <div class="box" id="exportBox">
+      <h3 id="dlgTitle"></h3>
+      <p id="dlgText"></p>
+      <div class="buttons"><button id="btnShare" class="primary"></button><button id="btnFiles"></button><button id="btnSendPrinter" class="hidden"></button><button id="btnDlgCancel"></button></div>
+    </div>
+  </div>
+
+  <script src="slicer-i18n.js"></script>
+  <script src="slicer-core.js"></script>
+  <script src="slicer-settings.js"></script>
+  <script src="slicer-import.js"></script>
+  <script src="vctl.js"></script>
+  <script src="ui-common.js"></script>
+  <script src="about.js"></script>
+  <script src="slicer/curaengine.js"></script>
+  <script src="slicer/viewer.js"></script>
+  <script src="slicer.js"></script>
+</body>
+</html>

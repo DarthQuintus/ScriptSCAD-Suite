@@ -1,0 +1,4 @@
+{
+ "url": "https://raw.githubusercontent.com/DarthQuintus/ScriptSCAD-Suite/main/version.json",
+ "hinweis": "Adresse einer version.json (Felder: version, zip, notes) im öffentlichen Repo ScriptSCAD-Suite. Funktioniert, sobald das Repo öffentlich ist."
+}

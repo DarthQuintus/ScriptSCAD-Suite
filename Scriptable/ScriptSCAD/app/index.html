@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ScriptSCAD Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 8c: Titel in der Scriptable-Leiste (zwischen „Close“ und Teilen; nur Anzeige, nicht antippbar). Aktiv nur im Hochformat,
+       wenn die Seite unter dieser Leiste liegt (Abstand oben ≥ 60 px), sonst steht der Titel wie bisher in der Kopfzeile. -->
+  <div id="navTitle" class="hidden"><svg class="logo" viewBox="12 14 76 72" aria-hidden="true"><path d="M34 22c-6 0-8 3-8 8v9c0 4-2 8-7 11 5 3 7 7 7 11v9c0 5 2 8 8 8M66 22c6 0 8 3 8 8v9c0 4 2 8 7 11-5 3-7 7-7 11v9c0 5-2 8-8 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><polygon points="50,37 62,44 50,51 38,44" fill="#FF7A4D"/><polygon points="38,44 50,51 50,64 38,57" fill="#D93A0B"/><polygon points="50,51 62,44 62,57 50,64" fill="#FF4F1A"/></svg><span class="navText"><span id="navApp" class="brand"><b></b> <span></span></span><span id="navProj"><span id="navName"></span><span id="navDirty"></span></span></span></div>
+  <header>
+    <button id="btnBack" class="hidden"></button>
+    <h1 id="title"><svg class="logo" viewBox="12 14 76 72" aria-hidden="true"><path d="M34 22c-6 0-8 3-8 8v9c0 4-2 8-7 11 5 3 7 7 7 11v9c0 5 2 8 8 8M66 22c6 0 8 3 8 8v9c0 4 2 8 7 11-5 3-7 7-7 11v9c0 5-2 8-8 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><polygon points="50,37 62,44 50,51 38,44" fill="#FF7A4D"/><polygon points="38,44 50,51 50,64 38,57" fill="#D93A0B"/><polygon points="50,51 62,44 62,57 50,64" fill="#FF4F1A"/></svg><span id="titleText"></span></h1>
+    <span id="dirty" class="hidden"></span>
+    <span id="beat"></span>
+    <span class="tools projOnly hidden">
+      <button id="btnCopy"></button>
+      <button id="btnPaste"></button>
+      <button id="btnPart"></button>
+      <button id="btnUndo" class="icon" disabled>↶</button>
+      <button id="btnRedo" class="icon" disabled>↷</button>
+      <button id="btnHistory"></button>
+      <span id="viewModes" class="modes"><button id="modeEdit" class="mode"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="modeBoth" class="mode on"><svg class="rot" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 4.5v15" stroke="currentColor" stroke-width="2"/><path d="M5.5 8.5h2M5.5 11.5h2M5.5 14.5h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><button id="modeView" class="mode"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9Z M4 7.5 12 12l8-4.5 M12 12v9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg></button></span>
+      <button id="btnSection"></button>
+      <button id="btnViewPhoto"></button>
+      <button id="btnStl" disabled></button>
+      <button id="btnSlicer" disabled></button>
+    </span>
+    <button id="btnLog"></button>
+  </header>
+  <div id="bar"></div>
+  <div id="status"></div>
+
+  <main>
+    <!-- Projektliste -->
+    <section id="screenList">
+      <div class="listHead">
+        <h2 id="listTitle"></h2>
+        <div class="listActions"><button id="btnSettings"></button><button id="btnNew" class="primary"></button></div>
+      </div>
+      <ul id="projectList"></ul>
+      <p id="emptyList" class="hint hidden"></p>
+    </section>
+
+    <!-- Projekt -->
+    <section id="screenProject" class="hidden">
+      <div id="codePane">
+        <div id="paneTabs"><button id="tabCode" class="seg on"></button><button id="tabParams" class="seg"></button><button id="tabAi" class="seg"></button></div>
+        <div id="editor"><button id="btnRender" class="primary renderFab"></button></div>
+        <div id="params" class="hidden"><div id="varBox"></div><div id="objBox"></div></div>
+        <div id="aiPane" class="hidden"></div>
+        <div id="histPane" class="hidden"><button id="aiHistFold" class="fold" aria-expanded="false"><span class="chev" aria-hidden="true">›</span><span class="t" id="aiHistTitle"></span><span class="badge cnt" id="aiHistCount">0</span></button><ul id="aiHistory" class="hidden"></ul></div>
+        <div id="console" class="hidden"><div id="consoleHead" role="button" tabindex="0" aria-expanded="false"><span class="chev" aria-hidden="true">›</span><span id="consoleTitle"></span><button id="btnRepair" class="small hidden"></button><span id="consoleBadges"></span></div><ul id="consoleList"></ul></div>
+      </div>
+      <div id="splitter" role="separator" tabindex="0"><span class="grip"></span></div>
+      <div id="view"><div id="viewHelp"></div><canvas id="sketch" class="hidden"></canvas><div id="sketchBar" class="hidden"></div><div id="sectionBar" class="hidden"></div></div>
+    </section>
+  </main>
+
+  <div id="logSplit" role="separator" tabindex="0"><span class="grip"></span></div>
+  <div id="logwrap"><pre id="log"></pre></div>
+  <div id="toast"></div>
+
+  <!-- Fenster für Versionen und Einstellungen -->
+  <div id="panel" class="hidden">
+    <div class="box">
+      <div class="panelHead"><h3 id="panelTitle"></h3><button id="panelClose"></button></div>
+      <div id="panelBody"></div>
+    </div>
+  </div>
+
+  <!-- Dialog (eigener, weil Systemdialoge in der Scriptable-WebView nicht sicher funktionieren) -->
+  <div id="dialog" class="hidden">
+    <div class="box">
+      <h3 id="dlgTitle"></h3>
+      <p id="dlgText"></p>
+      <input id="dlgInput" type="text" autocomplete="off" autocorrect="off" maxlength="60">
+      <p id="dlgError" class="error"></p>
+      <div class="buttons" id="dlgButtons"></div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="lib/viewer.js"></script>
+  <script src="lib/scad-hints.js"></script>
+  <script src="lib/editor.js"></script>
+  <script src="lib/openscad.js"></script>
+  <script src="params.js"></script>
+  <script src="objects.js"></script>
+  <script src="vctl.js"></script>
+  <script src="ui-common.js"></script>
+  <script src="about.js"></script>
+  <script src="export.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

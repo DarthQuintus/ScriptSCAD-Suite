@@ -1,0 +1,133 @@
+#include 'actions/scripting'
+#include 'actions/text'
+
+/*
+ScriptSCAD KI – Kurzbefehl für ScriptSCAD Studio (Schritt 6)
+Aufruf aus Scriptable per x-callback-url, Eingabe = Agent-Kennung (Text).
+Liest ai/prompt.txt und die Bilder aus ai/request.json („images“) aus iCloud Drive/Scriptable/ScriptSCAD/ai,
+fragt die gewählte KI, schreibt die Antwort nach ai/response.txt und gibt „SCRIPTSCAD-FERTIG“ aus (→ Parameter „result“).
+Kennungen und Feldnamen: docs/KI-AKTIONEN.md. Ordner-Angabe (fileLocation) stammt aus dem Mini-Kurzbefehl „Test Ordner“ des Nutzers;
+seit 7i.1 OHNE die kontogebundenen Kennungen (fileProviderDomainID, crossDeviceItemID) – nur der Pfad im Scriptable-iCloud-Ordner,
+der bei allen Nutzern gleich ist → Kurzbefehl veröffentlichbar (iPad-Test: findet Kurzbefehle den Ordner allein über den Pfad?).
+Kompilieren + signieren: npm run shortcut
+*/
+#define color blue
+#define glyph sparkles
+#define inputs text
+#define outputs text
+
+// Eigene Aktionsdefinitionen statt rawAction: In Cherri v1.3.2 bekommen bei mehreren rawAction-Aufrufen alle
+// die Kennung des letzten Aufrufs (Programmfehler, overrideIdentifier ist global) → im Container geprüft.
+
+// Datei aus dem Ordner iCloud Drive/Scriptable/ScriptSCAD/ai lesen
+action 'documentpicker.open' getAiFile(text path: 'WFGetFilePath', bool errorIfNotFound: 'WFFileErrorIfNotFound') {
+	"WFFile": {
+		"fileLocation": {
+			"relativeSubpath": "iCloud~dk~simonbs~Scriptable/Documents/ScriptSCAD/ai",
+			"WFFileLocationType": "iCloud",
+			"appContainerBundleIdentifier": "dk.simonbs.Scriptable"
+		},
+		"filename": "ai",
+		"displayName": "ai"
+	}
+}
+
+// Datei in den Ordner ai schreiben (überschreiben, ohne Rückfrage)
+action 'documentpicker.save' saveAiFile(text content: 'WFInput', text path: 'WFFileDestinationPath') {
+	"WFAskWhereToSave": false,
+	"WFSaveFileOverwrite": true,
+	"WFFolder": {
+		"fileLocation": {
+			"relativeSubpath": "iCloud~dk~simonbs~Scriptable/Documents/ScriptSCAD/ai",
+			"WFFileLocationType": "iCloud",
+			"appContainerBundleIdentifier": "dk.simonbs.Scriptable"
+		},
+		"filename": "ai",
+		"displayName": "ai"
+	}
+}
+
+// Claude-App: „Claude fragen“ (Feld message)
+action 'com.anthropic.claude.ClaudeAppIntentsExtension' askClaudeApp(text message: 'message') {
+	"ShowWhenRun": false,
+	"AppIntentDescriptor": {
+		"TeamIdentifier": "Q6L2SF6YDW",
+		"BundleIdentifier": "com.anthropic.claude",
+		"Name": "Claude",
+		"AppIntentIdentifier": "ClaudeAppIntentsExtension"
+	}
+}
+
+// ChatGPT-App: „ChatGPT fragen“ (Feld prompt), immer neuer Chat
+action 'com.openai.chat.AskIntent' askChatGPTApp(text prompt: 'prompt') {
+	"newChat": true,
+	"ShowWhenRun": false,
+	"AppIntentDescriptor": {
+		"TeamIdentifier": "2DC432GLL2",
+		"BundleIdentifier": "com.openai.chat",
+		"Name": "ChatGPT",
+		"AppIntentIdentifier": "AskIntent"
+	}
+}
+
+// Apple „Modell verwenden“ – Modellname so, wie ihn das iPad des Nutzers speichert (iOS 27)
+action 'askllm' askAppleModel(text prompt: 'WFLLMPrompt', text model: 'WFLLMModel') {
+	"FollowUp": false,
+	"WFGenerativeResultType": "Text"
+}
+
+// Eingabe = Agent. Direkt in der Kurzbefehle-App gestartet (ohne Eingabe): Claude-App mit dem letzten ai/prompt.txt
+// → Diagnose, ob die KI-Aktion auch ohne Scriptable nach ~30 s abbricht (iPad 8a.5).
+@agent = "{ShortcutInput}"
+if !agent {
+	@agent = "claude-app"
+}
+
+// Anfrage-Text (baut Scriptable, inkl. Regeln und aktuellem Code)
+const promptFile = getAiFile("prompt.txt", true)
+const prompt = "{promptFile}"
+
+// Bilder laut request.json → images (z. B. ["ai/view.jpg", "ai/photo.jpg"])
+const requestFile = getAiFile("request.json", false)
+const request = getDictionary(requestFile)
+const images = getValue(request, "images")
+// Ergebnis der Schleife = Liste der Bilddateien (letzte Aktion je Durchlauf)
+const bilder = for image in images {
+	const imageName = replaceText("ai/", "", image)
+	getAiFile("{imageName}", false)
+}
+
+// Prompt + Bilder DIREKT ins Textfeld der KI-Aktion (wie im Mini-Kurzbefehl des Nutzers, docs/KI-AKTIONEN.md).
+// Bis 8a.10 lief beides erst durch eine eigene „Text“-Aktion (const frage) → Shortcuts wandelt Dateien dort in ihren
+// Dateinamen um, die KI bekam nur „upload-….jpg“ statt des Bildes (Fund des Nutzers, 2026-11-06).
+@antwort = ""
+if agent == "claude-app" {
+	const claude = askClaudeApp("{prompt}
+{bilder}")
+	@antwort = "{claude}"
+}
+if agent == "chatgpt-app" {
+	const chatgpt = askChatGPTApp("{prompt}
+{bilder}")
+	@antwort = "{chatgpt}"
+}
+if agent == "apple-cloud" {
+	const appleCloud = askAppleModel("{prompt}
+{bilder}", "Apple Intelligence Pro")
+	@antwort = "{appleCloud}"
+}
+if agent == "apple-chatgpt" {
+	const appleChatgpt = askAppleModel("{prompt}
+{bilder}", "ChatGPT")
+	@antwort = "{appleChatgpt}"
+}
+
+if !antwort {
+	output("")
+}
+
+// Antwort als Datei – Scriptable liest sie von dort (ab 8a.6 immer; die Rückgabe per x-callback-URL
+// scheiterte bei langen Antworten). Ausgabe nur noch ein kurzes Kennwort.
+saveAiFile(antwort, "response.txt")
+
+output("SCRIPTSCAD-FERTIG")

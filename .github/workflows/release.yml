@@ -1,0 +1,44 @@
+# Builds the installation and update ZIPs when a version tag (v…) is pushed and attaches them to a GitHub release.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version
+        id: v
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          grep -q "const VERSION = '$V'" Scriptable/ScriptSCAD/app/main.js || { echo "main.js is not version $V"; exit 1; }
+          grep -q "\"version\": \"$V\"" version.json || { echo "version.json is not version $V"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Build ZIPs
+        run: |
+          V="${{ steps.v.outputs.version }}"
+          D="ScriptSCAD-$V"
+          mkdir -p "dist/$D" "dist/update/$D"
+          cp -R "Scriptable/ScriptSCAD Studio.js" "Scriptable/ScriptSCAD Slicer.js" Scriptable/ScriptSCAD "dist/$D/"
+          cp "shortcut/ScriptSCAD KI.shortcut" LICENSE "dist/$D/"
+          cp -R Scriptable/ScriptSCAD/app "dist/update/$D/"
+          (cd dist && zip -qr -X "../$D.zip" "$D")
+          (cd dist/update && zip -qr -X "../../$D-update.zip" "$D")
+          ls -l *.zip
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ScriptSCAD ${{ steps.v.outputs.version }}
+          body_path: ${{ github.workspace }}/.github/release-notes.md
+          files: |
+            ScriptSCAD-${{ steps.v.outputs.version }}.zip
+            ScriptSCAD-${{ steps.v.outputs.version }}-update.zip

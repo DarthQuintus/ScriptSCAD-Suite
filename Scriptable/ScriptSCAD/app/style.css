@@ -1,0 +1,697 @@
+:root { color-scheme: dark; }
+/* ---------- Farben: Dunkel (Standard, Entwurf B) und Hell (Farben von Entwurf A). Umschalten über <html data-theme="…"> ---------- */
+:root, :root[data-theme="dark"] {
+  /* 8c „Code wird Form“ (dunkel): Schwarz/Papier vertauscht, Signal-Orange bleibt. Flach: keine Unschärfe, keine Schatten. */
+  --bg0: #111111; --glow1: transparent; --glow2: transparent; --glow3: transparent;
+  --glass: #1a1a19; --glassEdge: #2f2f2c; --glassHi: transparent; --shadow: transparent;
+  --solid: #1a1a19; --field: #222220; --scrim: rgba(0,0,0,.6); --toastBg: #f4f4f0; --toastFg: #111111;
+  --fg: #f4f4f0; --muted: #a8a8a2; --line: #2f2f2c; --edge: #4a4a46; --rule: #f4f4f0; --fill: #242422; --thumb: #f4f4f0;
+  --inv: #f4f4f0; --onInv: #111111;
+  --accent: #ff4f1a; --onAccent: #111111; --accentSoft: rgba(255,79,26,.16); --accentGlow: transparent; --accentText: #ff7a4d;
+  --err: #ff5a6e; --errSoft: rgba(255,90,110,.13); --danger: #ff5a6e; --warn: #f2c14e; --warnSoft: rgba(242,193,78,.12);
+  --ok: #5fd38d; --okSoft: rgba(95,211,141,.14); --compare: #6d7f99;
+  --cm-bg: transparent; --cm-fg: #e8e8e2; --cm-caret: #ff4f1a; --cm-gutter-bg: transparent; --cm-gutter-fg: #6a6a65; --cm-gutter-line: #2f2f2c;
+  --cm-active: rgba(255,255,255,.04); --cm-active-gutter: rgba(255,255,255,.06); --cm-selection: rgba(255,79,26,.28); --cm-bracket: rgba(255,79,26,.25);
+  --cm-search: rgba(242,193,78,.35); --cm-panel-bg: #1a1a19; --cm-line-error: rgba(255,90,110,.15); --cm-line-warning: rgba(242,193,78,.13);
+  --syn-comment: #8a8a84; --syn-keyword: #f4f4f0; --syn-builtin: #ff7a4d; --syn-number: #8fb8ff; --syn-string: #b5d99c; --syn-atom: #e0b36a; --syn-operator: #a8a8a2;
+  --sans: "Space Grotesk", -apple-system, "Helvetica Neue", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; /* 9h: vorher verwies die Variable auf sich selbst → alle Mono-Angaben waren unwirksam */
+}
+:root[data-theme="light"] { color-scheme: light;
+  /* 8c „Code wird Form“ (hell): Papier, Schwarz, Grau, Signal-Orange nur als Fläche */
+  --bg0: #f4f4f0; --glow1: transparent; --glow2: transparent; --glow3: transparent;
+  --glass: #ffffff; --glassEdge: #c9c9c3; --glassHi: transparent; --shadow: transparent;
+  --solid: #ffffff; --field: #ffffff; --scrim: rgba(17,17,17,.4); --toastBg: #111111; --toastFg: #f4f4f0;
+  --fg: #111111; --muted: #5c5c58; --line: #c9c9c3; --edge: #111111; --rule: #111111; --fill: #eaeae4; --thumb: #111111;
+  --inv: #111111; --onInv: #f4f4f0;
+  --accent: #ff4f1a; --onAccent: #111111; --accentSoft: rgba(255,79,26,.14); --accentGlow: transparent; --accentText: #b8360b;
+  --err: #c8102e; --errSoft: rgba(200,16,46,.09); --danger: #c8102e; --warn: #8a5a00; --warnSoft: rgba(242,170,30,.16);
+  --ok: #1e7a3c; --okSoft: rgba(30,122,60,.12); --compare: #8fa3bf;
+  --cm-bg: transparent; --cm-fg: #111111; --cm-caret: #d93a0b; --cm-gutter-bg: transparent; --cm-gutter-fg: #8a8a84; --cm-gutter-line: #e4e4de;
+  --cm-active: rgba(0,0,0,.035); --cm-active-gutter: rgba(255,79,26,.10); --cm-selection: rgba(255,79,26,.22); --cm-bracket: rgba(255,79,26,.18);
+  --cm-search: #ffe58a; --cm-panel-bg: #f4f4f0; --cm-line-error: rgba(200,16,46,.09); --cm-line-warning: rgba(242,170,30,.16);
+  --syn-comment: #6f6f6a; --syn-keyword: #111111; --syn-builtin: #b8360b; --syn-number: #2f5fb3; --syn-string: #2e6b2e; --syn-atom: #8a5a00; --syn-operator: #5c5c58;
+}
+/* 8c: Schriften lokal (Offline-Pflicht), Lizenz SIL OFL 1.1 → fonts/OFL.txt */
+@font-face { font-family: "Space Grotesk"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/SpaceGrotesk-400.woff2") format("woff2"); }
+@font-face { font-family: "Space Grotesk"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/SpaceGrotesk-500.woff2") format("woff2"); }
+@font-face { font-family: "Space Grotesk"; font-weight: 600 700; font-style: normal; font-display: swap; src: url("fonts/SpaceGrotesk-700.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/JetBrainsMono-400.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500 700; font-style: normal; font-display: swap; src: url("fonts/JetBrainsMono-600.woff2") format("woff2"); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg0); color: var(--fg);
+  font: 16px var(--sans); -webkit-user-select: none; user-select: none; }
+body { display: flex; flex-direction: column; overflow: hidden;
+  padding: var(--safeTop, env(safe-area-inset-top)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.hidden { display: none !important; }
+
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--solid); }
+header h1 { font-size: 17px; margin: 0; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button { font: inherit; font-weight: 600; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--solid); color: var(--fg); min-height: 44px; white-space: nowrap; }
+button.primary { background: var(--accent); color: var(--onAccent); border-color: var(--accent); }
+button.danger { color: var(--danger); }
+button.dangerFill { background: var(--danger); border-color: var(--danger); color: #fff; }
+button:disabled { opacity: .45; }
+button.on { background: var(--accentSoft); border-color: var(--accent); }
+header .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+button.icon { font-size: 20px; padding: 6px 12px; min-width: 44px; }
+#dirty { font-size: 13px; color: var(--muted); white-space: nowrap; }
+#beat { font-size: 12px; color: var(--ok); min-width: 40px; text-align: right; }
+#bar { height: 3px; background: var(--accent); width: 0; transition: width .15s; }
+#status { padding: 6px 14px; font-size: 14px; color: var(--muted); background: var(--solid); border-bottom: 1px solid var(--line); min-height: 30px; }
+#status.error { color: var(--err); font-weight: 600; }
+
+main { flex: 1 1 auto; position: relative; min-height: 0; display: flex; }
+section { flex: 1 1 auto; min-height: 0; }
+
+/* Projektliste */
+#screenList { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px; }
+.listHead { display: flex; align-items: center; gap: 12px; max-width: 900px; margin: 0 auto 10px; }
+.listHead h2 { flex: 1; margin: 0; font-size: 22px; }
+:is(#projectList, #plateList) { list-style: none; margin: 0 auto; padding: 0; max-width: 900px; }
+:is(#projectList, #plateList) li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--solid);
+  border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+:is(#projectList, #plateList) .open { flex: 1 1 220px; text-align: left; border: none; background: none; padding: 6px 4px; min-height: 48px; }
+:is(#projectList, #plateList) .name { display: block; font-size: 17px; }
+:is(#projectList, #plateList) .date { display: block; font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.hint { color: var(--muted); text-align: center; margin-top: 30px; }
+
+/* Projekt */
+#screenProject { display: flex; }
+#codePane { flex: 0 0 42%; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--solid); }
+#editor { flex: 1 1 auto; min-height: 0; overflow: hidden; -webkit-user-select: text; user-select: text; }
+#editor .cm-editor { height: 100%; }
+#paneTabs { flex: 0 0 auto; display: flex; gap: 0; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+#paneTabs .seg { flex: 1; min-height: 36px; padding: 6px 10px; border-radius: 0; }
+#paneTabs .seg:first-child { border-radius: 9px 0 0 9px; }
+#paneTabs .seg:last-child { border-radius: 0 9px 9px 0; }
+#paneTabs .seg + .seg { border-left: none; }
+#paneTabs .seg.on { background: var(--accent); color: var(--onAccent); border-color: var(--accent); }
+#params { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 14px 16px; }
+#params .pTools { display: flex; gap: 8px; justify-content: flex-end; padding: 8px 0 2px; }
+#params .pTools button { min-height: 36px; padding: 6px 12px; font-size: 14px; }
+#params .pSection { border: 1px solid var(--line); border-radius: 12px; margin: 10px 0; background: var(--field); }
+#params .pSection > .secHead { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; border-radius: 12px;
+  background: var(--fill); min-height: 46px; padding: 8px 12px; font-size: 16px; }
+#params .pSection.open > .secHead { border-radius: 12px 12px 0 0; border-bottom: 1px solid var(--line); }
+#params .secHead .arrow { width: 16px; height: 16px; color: var(--muted); transition: transform .15s; display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 13px; }
+#params .pSection.open .secHead .arrow { transform: rotate(90deg); }
+#params .secHead .secName { flex: 1; }
+#params .secHead .secCount { font-size: 13px; color: var(--muted); font-weight: 400; }
+#params .pSection .secBody { padding: 0 12px; }
+#params .pSection:not(.open) .secBody { display: none; }
+#params .pSection .param:last-child { border-bottom: none; }
+#params .hint { text-align: left; white-space: pre-wrap; margin: 14px 0; font-size: 14px; }
+#params .hint.tip { font-size: 13px; margin: 18px 0 4px; }
+.param { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.param .pHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.param .pLabel { flex: 1; font-weight: 600; font-size: 15px; }
+.param .pName { font: 12px var(--mono); color: var(--muted); }
+.param .pCtl { display: flex; align-items: center; gap: 10px; }
+.param input[type=range] { flex: 1; min-width: 0; height: 36px; accent-color: var(--accent); }
+.param input.num { width: 86px; font: 16px var(--mono); padding: 8px; border: 1px solid var(--line); border-radius: 8px;
+  text-align: right; -webkit-user-select: text; user-select: text; }
+.param input.num.bad { border-color: var(--err); background: var(--errSoft); }
+.param .step { min-width: 44px; padding: 6px 10px; font-size: 20px; }
+.param select { flex: 1; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); min-height: 42px; }
+.param .switch { width: 30px; height: 30px; accent-color: var(--accent); }
+.param input.txt { flex: 1; min-width: 0; font: 16px var(--sans); padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px;
+  -webkit-user-select: text; user-select: text; }
+.param input.txt.bad { border-color: var(--err); background: var(--errSoft); }
+.param .vec { flex-wrap: wrap; gap: 8px 12px; }
+.param .vec label { display: flex; align-items: center; gap: 5px; font: 13px var(--mono); color: var(--muted); }
+.param .vec input.num { width: 76px; }
+.param .pRange { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.param .pErr { color: var(--err); font-size: 13px; margin-top: 4px; }
+.param .pErr:empty { display: none; }
+#console { flex: 0 0 auto; max-height: 35%; overflow: auto; border-top: 1px solid var(--line); background: transparent; }
+#consoleHead { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 6px 12px; color: var(--muted); position: sticky; top: 0; background: transparent; }
+#consoleTitle { flex: 1; min-width: 0; }
+#btnRepair { color: var(--accent); border-color: var(--accent); }
+#aiPane .aiPreview.bad { border-color: var(--err); background: var(--errSoft); }
+#aiPane .aiPreview .aiBad { color: var(--err); font-weight: 600; font-size: 14px; margin: 6px 0; }
+#consoleList { list-style: none; margin: 0; padding: 0 0 6px; }
+#consoleList li { font: 13px/1.4 var(--mono); padding: 6px 12px; border-top: 1px solid var(--line); white-space: pre-wrap; word-break: break-word; }
+#consoleList li.error { color: var(--err); background: var(--errSoft); }
+#consoleList li.warning { color: var(--warn); background: var(--warnSoft); }
+#consoleList li.echo { color: var(--muted); }
+#consoleList li.jump { cursor: pointer; text-decoration: underline dotted; }
+#view { position: relative; flex: 1 1 auto; min-width: 0; touch-action: none; }
+#view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#viewHelp { position: absolute; z-index: 2; left: 10px; bottom: 10px; background: var(--glass); border-radius: 8px;
+  padding: 5px 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
+@media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+  #screenProject { flex-direction: column; }
+  #codePane { flex: 0 0 50%; }
+}
+/* Trennbalken zwischen Bearbeitungsbereich und 3D-Ansicht (ziehen = Größe ändern, doppelt tippen = Standard) */
+#splitter { position: relative; flex: 0 0 auto; width: 14px; display: flex; align-items: center; justify-content: center; background: var(--fill);
+  border-left: 1px solid var(--line); border-right: 1px solid var(--line); cursor: col-resize; touch-action: none; z-index: 6; outline: none;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#splitter::before { content: ''; position: absolute; inset: 0 -8px; } /* größere Fläche für den Finger */
+#splitter .grip { width: 4px; height: 40px; border-radius: 2px; background: var(--muted); pointer-events: none; }
+#splitter.active, #splitter:focus-visible { background: var(--accentSoft); }
+#splitter.active .grip, #splitter:focus-visible .grip { background: var(--accent); }
+/* Ansicht: nur Bearbeiten / beides / nur 3D – schmale Piktogramme */
+#viewModes { display: inline-flex; }
+#viewModes .mode { min-width: 40px; padding: 6px 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 0; color: var(--muted); }
+#viewModes .mode:first-child { border-radius: 10px 0 0 10px; }
+#viewModes .mode:last-child { border-radius: 0 10px 10px 0; }
+#viewModes .mode + .mode { border-left: none; }
+#viewModes .mode.on { background: var(--accentSoft); color: var(--accent); border-color: var(--accent); }
+#viewModes .mode.on + .mode { border-left: 1px solid var(--accent); margin-left: -1px; }
+#viewModes .mode svg { display: block; }
+/* Hochkant: Balken waagerecht (gleiche Bedingung wie oben für die Spalten-Anordnung) */
+@media (max-width: 700px), (orientation: portrait) and (max-width: 900px) {
+  #splitter { width: auto; height: 14px; cursor: row-resize; border-left: none; border-right: none; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  #splitter::before { inset: -8px 0; }
+  #splitter .grip { width: 40px; height: 4px; }
+  #viewModes .mode .rot { transform: rotate(90deg); }
+}
+
+/* Protokoll, Meldung, Dialog */
+#logwrap { display: none; border-top: 1px solid var(--line); background: var(--solid); overflow: auto; }
+#logwrap.open { display: block; flex: 0 0 auto; height: var(--logH, 35vh); }
+/* 9i.2: Trennbalken über dem Protokoll (ziehen = Höhe, doppelt tippen = Standard), nur sichtbar, wenn das Protokoll offen ist */
+#logSplit { display: none; position: relative; flex: 0 0 auto; height: 14px; align-items: center; justify-content: center; cursor: row-resize;
+  touch-action: none; outline: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; z-index: 6; }
+#logSplit.open { display: flex; }
+#logSplit::before { content: ''; position: absolute; inset: -8px 0; }
+#logSplit .grip { width: 40px; height: 4px; border-radius: 2px; background: var(--muted); opacity: .55; pointer-events: none; }
+#logSplit.active .grip, #logSplit:focus-visible .grip { background: var(--accent); opacity: 1; }
+#log { margin: 0; padding: 10px 14px; font: 12px var(--mono); white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+#toast { position: fixed; z-index: 20; left: 50%; top: calc(env(safe-area-inset-top) + 64px); transform: translateX(-50%);
+  background: var(--toastBg); color: var(--toastFg); padding: 10px 16px; border-radius: 10px; font-size: 15px; opacity: 0; transition: opacity .2s;
+  pointer-events: none; max-width: 90%; text-align: center; }
+#toast.show { opacity: 1; }
+#dialog { position: fixed; inset: 0; z-index: 30; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
+#dialog .box { background: var(--solid); border-radius: 14px; padding: 18px; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+#dialog h3 { margin: 0 0 8px; font-size: 18px; }
+#dialog p { margin: 0 0 10px; color: var(--muted); }
+#dialog p:empty { display: none; }
+#dlgInput { width: 100%; font: inherit; font-size: 17px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  -webkit-user-select: text; user-select: text; margin-bottom: 8px; }
+#dialog .error { color: var(--err); }
+#dialog .buttons { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+#dlgText { white-space: pre-wrap; word-break: break-word; }
+#panel { position: fixed; inset: 0; z-index: 25; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
+#panel .box { background: var(--solid); border-radius: 14px; width: 100%; max-width: 560px; max-height: 85%; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+.panelHead { display: flex; align-items: center; gap: 10px; padding: 12px 14px 8px 18px; border-bottom: 1px solid var(--line); }
+.panelHead h3 { flex: 1; margin: 0; font-size: 18px; }
+#panelBody { overflow-y: auto; padding: 10px 18px 16px; }
+#panelBody .hint { text-align: left; margin: 6px 0 12px; font-size: 14px; }
+#panelBody ul { list-style: none; margin: 0; padding: 0; }
+#panelBody li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+#panelBody li span { flex: 1; }
+#panelBody label.row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+#panelBody label.row span { flex: 1; }
+#panelBody input[type=checkbox] { width: 26px; height: 26px; }
+#panelBody select { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); min-height: 40px; }
+#panelBody h4 { margin: 18px 0 6px; font-size: 15px; }
+
+/* Regler: Überschriften, Wert-Balken, Objekte */
+.boxHead { display: flex; align-items: center; gap: 8px; margin: 12px 0 2px; }
+.boxHead h3 { flex: 1; margin: 0; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+button.small { min-height: 34px; padding: 5px 10px; font-size: 13px; }
+.vbar { position: relative; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; border-radius: 9px;
+  background: var(--fill); border: 1px solid var(--line); overflow: hidden; touch-action: none; cursor: ew-resize; min-width: 0; outline: none; }
+.vbar:focus-visible, .vbar.active { border-color: var(--accent); }
+.vbar .vfill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accentSoft); pointer-events: none; }
+.vbar .vlabel { position: relative; flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.vbar .vval { position: relative; font: 600 15px var(--mono); white-space: nowrap; pointer-events: none; }
+.vbar input.vedit { position: relative; width: 96px; text-align: right; font: 15px var(--mono); border: 1px solid var(--accent);
+  border-radius: 6px; padding: 4px 6px; background: var(--field); -webkit-user-select: text; user-select: text; }
+.vbar input.vedit.bad { border-color: var(--err); background: var(--errSoft); }
+.vbar.ro { background: var(--fill); cursor: default; }
+.vbar.ro .vval { font-weight: 400; color: var(--muted); font-size: 13px; max-width: 70%; overflow: hidden; text-overflow: ellipsis; }
+.vbar.missing .vval { color: var(--muted); font-weight: 400; }
+.vrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.vrow .vbar { flex: 1 1 28%; }
+.param .pCtl > .vbar { flex: 1; }
+.param { padding: 6px 0; }
+#objBox .objGroup { font-size: 13px; color: var(--muted); padding: 8px 0 2px; }
+#objBox .objRow { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: none; border-bottom: 1px solid var(--line);
+  border-radius: 0; background: none; min-height: 44px; padding: 6px 4px; font-weight: 600; }
+#objBox .objRow .arrow { color: var(--muted); width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 12px; flex: 0 0 auto; transition: transform .15s; }
+#objBox .objGroup { font-weight: 600; }
+#objBox .objRow.sel { background: var(--accentSoft); border-radius: 8px; }
+#objBox .objRow.sel .arrow { transform: rotate(90deg); }
+#objBox .objRow .objSum { flex: 1; min-width: 0; font: 13px var(--mono); color: var(--muted); font-weight: 400;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#objBox .objRow .objTag { font-size: 12px; color: var(--err); font-weight: 400; white-space: nowrap; }
+#objBox .inspector { border: 1px solid var(--accent); border-radius: 10px; padding: 4px 10px 10px; margin: 4px 0 10px; background: var(--fill); }
+#objBox .insTitle { font-size: 13px; font-weight: 600; color: var(--muted); margin: 10px 0 5px; }
+#objBox .insToggle { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 14px; }
+#objBox .insHint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+#objBox .insFoot { display: flex; justify-content: flex-end; margin-top: 10px; }
+
+/* KI */
+#aiPane { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 14px 16px; }
+#aiPane .aiLabel { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+#aiPane select { flex: 1; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); min-height: 42px; }
+#aiPrompt { width: 100%; font: 16px var(--sans); padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  resize: vertical; min-height: 110px; -webkit-user-select: text; user-select: text; }
+#aiPane .aiRow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+#aiPane .aiHint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+#aiPane .aiWait { color: var(--accent); font-weight: 600; }
+#aiPane .aiError { color: var(--err); white-space: pre-wrap; font-size: 14px; background: var(--errSoft); padding: 8px 10px; border-radius: 8px; }
+#aiPane .aiPreview { border: 2px solid var(--accent); border-radius: 12px; padding: 4px 12px 12px; margin: 12px 0; background: var(--accentSoft); }
+#aiPane .aiPreview h4 { margin: 8px 0 4px; }
+#aiPane .aiDiff { font-size: 14px; margin: 4px 0; }
+#aiPane .aiText { font-size: 14px; color: var(--muted); white-space: pre-wrap; margin: 4px 0; }
+#aiHistory { list-style: none; margin: 0; padding: 0; }
+#aiHistory .aiItem { padding: 8px 4px; border-bottom: 1px solid var(--line); cursor: pointer; }
+#aiHistory .aiItemTop { display: flex; gap: 8px; font-size: 12px; color: var(--muted); }
+#aiHistory .aiItemDate { flex: 1; }
+#aiHistory .aiItemText { font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#aiHistory .aiItemNote { font-size: 12px; color: var(--err); margin-top: 2px; }
+.aiChip { border-radius: 6px; padding: 0 6px; background: var(--fill); }
+.aiChip.accepted { background: var(--okSoft); color: var(--ok); }
+.aiChip.error, .aiChip.discarded { background: var(--errSoft); color: var(--err); }
+#panelBody pre.aiCode { font: 12px var(--mono); white-space: pre-wrap; -webkit-user-select: text; user-select: text; margin: 0; }
+
+/* Bilder für die KI, Skizze */
+#aiPane .aiAttBox { margin-top: 10px; padding: 8px 10px 10px; border: 1px solid var(--line); border-radius: 10px; background: transparent; }
+#aiPane .aiSub { font-size: 13px; font-weight: 600; color: var(--muted); }
+#aiPane .aiRow button { font-size: 14px; }
+/* Vergleich: halten zeigt das alte Modell; kein Markieren/Lupe beim langen Drücken auf dem iPad */
+#aiPane .aiCompare { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; }
+#aiPane .aiCompare.active { background: var(--compare); color: #fff; border-color: var(--compare); }
+#view.comparing::after { content: attr(data-badge); position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  background: var(--compare); color: #fff; font-weight: 600; padding: 4px 14px; border-radius: 999px; pointer-events: none; z-index: 5; }
+#aiPane .aiCheck { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; }
+#aiPane .aiCheck input { width: 22px; height: 22px; }
+#aiPane .aiAttList { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+#aiPane .aiThumb { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; }
+#aiPane .aiThumb img { width: 140px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: var(--fill); }
+#sketch { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; touch-action: none; cursor: crosshair; }
+#sketchBar { position: absolute; z-index: 5; left: 8px; right: 8px; top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  background: var(--solid); border: 1px solid var(--line); border-radius: 12px; padding: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+#sketchBar .sketchHint { flex: 1 1 100%; font-size: 13px; color: var(--muted); }
+#sketchBar .sketchColors { display: flex; gap: 6px; margin-right: auto; }
+#sketchBar .sketchColor { width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line); }
+#sketchBar .sketchColor.on { box-shadow: 0 0 0 3px var(--accent); }
+#sketchBar button { min-height: 40px; font-size: 14px; }
+/* 10g: Schnittansicht – Leiste unten in der 3D-Ansicht */
+#sectionBar { position: absolute; z-index: 5; left: 8px; right: 8px; bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  background: var(--solid); border: 1px solid var(--line); border-radius: 12px; padding: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+#sectionBar .segs { display: inline-flex; }
+#sectionBar .segs button { min-width: 40px; min-height: 36px; border-radius: 0; padding: 4px 10px; }
+#sectionBar .segs button:first-child { border-radius: 10px 0 0 10px; }
+#sectionBar .segs button:last-child { border-radius: 0 10px 10px 0; }
+#sectionBar .segs button + button { border-left: none; }
+#sectionBar .segs button.on { background: var(--accentSoft); color: var(--accent); border-color: var(--accent); }
+#sectionBar input[type=range] { flex: 1 1 140px; min-width: 120px; accent-color: var(--accent); }
+#sectionBar .secVal { font: 13px var(--mono); min-width: 92px; text-align: right; }
+#sectionBar button { min-height: 36px; font-size: 14px; }
+#btnSection.on { background: var(--accentSoft); color: var(--accent); border-color: var(--accent); }
+
+/* ======================================================================================
+   Schritt 8a: schwebende Glas-Flächen („Liquid Glass“-artig). Farben oben über Variablen.
+   ====================================================================================== */
+body { font-family: var(--sans); }
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(40% 50% at 12% 18%, var(--glow1), transparent 70%), radial-gradient(45% 55% at 88% 85%, var(--glow2), transparent 70%),
+              radial-gradient(35% 40% at 70% 10%, var(--glow3), transparent 70%), var(--bg0); }
+header, #paneTabs, #editor, #params, #aiPane, #histPane, #console, :is(#projectList, #plateList) li, #status.chip, #viewHelp, #logwrap {
+  background: var(--glass); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%);
+  border: 1px solid var(--glassEdge); box-shadow: 0 10px 30px var(--shadow), inset 0 1px 0 var(--glassHi); }
+/* Knöpfe */
+button { background: var(--fill); border: 1px solid transparent; color: var(--fg); font-weight: 550; border-radius: 12px; min-height: 40px; }
+button.primary { box-shadow: 0 4px 14px var(--accentGlow); }
+button.on { background: var(--accentSoft); color: var(--accent); border-color: transparent; }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .35; }
+button.tb { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+button.tb svg { width: 20px; height: 20px; flex: 0 0 auto; display: block; }
+button.tb.iconOnly { min-width: 40px; padding: 6px 9px; background: transparent; }
+button.tb.iconOnly.on { background: var(--accentSoft); }
+/* Kopfzeile: schwebende Leiste, eine Zeile */
+header { margin: 8px 10px 0; border-radius: 20px; padding: 6px 8px; flex-wrap: nowrap; gap: 6px; }
+header h1 { font-size: 16px; font-weight: 650; padding-left: 4px; min-width: 0; }
+header .tools { flex-wrap: nowrap; gap: 6px; align-items: center; }
+#btnBack { background: transparent; color: var(--accent); padding: 6px 8px; }
+#dirty { font-size: 12px; }
+#beat { font-size: 11px; min-width: 34px; }
+#bar { margin: 0 30px; border-radius: 2px; height: 2px; transition: width .15s, opacity .3s; }
+#screenList #status.line { max-width: 900px; margin: 0 auto 8px; padding: 0 4px; }
+/* Statuszeile: im Projekt als Hinweis oben links in der 3D-Ansicht, in der Projektliste als Zeile */
+#status { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 4px 22px; min-height: 0; }
+#status:empty { display: none; }
+#status.chip { position: absolute; z-index: 3; top: 10px; left: 10px; max-width: calc(100% - 20px); padding: 5px 12px; border-radius: 12px;
+  font-size: 12.5px; color: var(--fg); pointer-events: none; }
+#status.chip.error { color: var(--err); }
+#status.line { padding: 2px 6px 8px; font-size: 12.5px; }
+#status.error { color: var(--err); font-weight: 600; }
+#view.comparing::after { top: auto; bottom: 52px; }
+/* Ansicht-Umschalter */
+#viewModes { background: var(--fill); border-radius: 12px; padding: 3px; }
+#viewModes .mode { background: transparent; border: none !important; border-radius: 9px !important; min-height: 34px; margin: 0 !important; color: var(--muted); }
+#viewModes .mode.on { background: var(--thumb); color: var(--fg); box-shadow: 0 1px 4px var(--shadow); }
+/* Projekt: schwebende Karten mit Abstand */
+#screenProject { padding: 8px 10px 10px; }
+#codePane { background: transparent; gap: 8px; }
+#paneTabs { border-radius: 16px; padding: 3px; gap: 0; }
+#paneTabs .seg { background: transparent; border: none !important; border-radius: 13px !important; color: var(--muted); min-height: 34px; font-weight: 600; }
+#paneTabs .seg.on { background: var(--thumb); color: var(--fg); box-shadow: 0 2px 8px var(--shadow); }
+#editor, #params, #aiPane, #histPane, #console { border-radius: 20px; }
+#editor { overflow: hidden; }
+#splitter { background: transparent; border: none !important; }
+#splitter .grip { opacity: .55; }
+#splitter.active, #splitter:focus-visible { background: transparent; }
+#view { border-radius: 22px; overflow: hidden; border: 1px solid var(--glassEdge); box-shadow: 0 10px 30px var(--shadow); }
+#viewHelp { color: var(--muted); border-radius: 999px; left: 12px; bottom: 12px; box-shadow: none; }
+/* Regler */
+.vbar { background: var(--fill); border: 1px solid transparent; border-radius: 12px; }
+.vbar .vval { color: var(--accent); }
+.vbar.ro .vval { color: var(--muted); }
+.vbar input.vedit { background: var(--solid); color: var(--fg); }
+.param { border-bottom: none !important; }
+#params .pSection { border: 1px solid var(--line); background: transparent; }
+#params .pSection > .secHead { background: var(--fill); color: var(--fg); }
+#objBox .objRow { background: none; color: var(--fg); }
+#objBox .objRow.sel { border-radius: 12px; }
+#objBox .inspector { border-radius: 14px; }
+.param select, #aiPane select, #panelBody select, .param input.txt, .param input.num { background: var(--field); color: var(--fg); border-color: var(--line); }
+/* Meldungen */
+#console { flex: 0 0 auto; max-height: 35%; }
+#consoleHead { background: transparent; color: var(--fg); }
+/* KI */
+#aiPrompt { background: var(--field); color: var(--fg); border: 1px solid var(--line); border-radius: 16px; }
+#aiPane .aiAttBox { border-color: var(--line); border-radius: 16px; }
+#aiPane .aiPreview { border-radius: 16px; }
+#sketchBar { border-radius: 16px; }
+/* Projektliste */
+#screenList { background: transparent; padding-top: 18px; }
+.listHead h2 { font-size: 30px; font-weight: 750; letter-spacing: -.02em; }
+:is(#projectList, #plateList) li { border-radius: 20px; padding: 8px 12px; }
+:is(#projectList, #plateList) .open { color: var(--fg); }
+:is(#projectList, #plateList) li button:not(.open) { background: transparent; color: var(--accent); }
+:is(#projectList, #plateList) li button.danger { color: var(--danger); }
+:is(#projectList, #plateList) .thumb { width: 50px; height: 50px; border-radius: 14px; background: var(--fill); display: inline-flex; align-items: center; justify-content: center; color: var(--accent); flex: 0 0 auto; }
+:is(#projectList, #plateList) .thumb svg { width: 26px; height: 26px; }
+/* Fenster, Dialog, Protokoll */
+#panel .box, #dialog .box { border-radius: 22px; border: 1px solid var(--glassEdge); box-shadow: 0 20px 60px var(--shadow); }
+#dlgInput { background: var(--field); color: var(--fg); border-color: var(--line); }
+#logwrap { margin: 0 10px 10px; border-radius: 16px; }
+
+/* ---------- 8a.2: KI-Seite (Agent-Symbole, Bild-Knöpfe, Verlauf) und Meldungen (zuklappbar mit Anzeigen) ---------- */
+.srOnly, #aiPane select.srOnly { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; flex: none !important; padding: 0 !important; margin: -1px !important; overflow: hidden; clip: rect(0 0 0 0); border: 0 !important; opacity: 0; }
+#aiPane .agentRow { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.agents { display: flex; gap: 8px; flex-wrap: wrap; }
+button.agent { width: 52px; height: 52px; min-width: 52px; min-height: 52px; padding: 0; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; background: var(--fill); }
+button.agent svg { width: 32px; height: 32px; display: block; }
+button.agent.on { background: var(--thumb); box-shadow: 0 0 0 2px var(--accent), 0 4px 14px var(--accentGlow); }
+.agentName { font-size: 13px; color: var(--muted); min-width: 0; }
+#aiPane button.ico { display: inline-flex; align-items: center; gap: 8px; }
+#aiPane button.ico svg { width: 20px; height: 20px; flex: 0 0 auto; display: block; }
+button.fold { display: flex; align-items: center; gap: 8px; width: 100%; background: transparent; border: none; padding: 8px 2px; min-height: 40px; color: var(--fg); margin-top: 8px; }
+button.fold .t { flex: 1; text-align: left; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.chev { display: inline-block; width: 12px; color: var(--muted); font-weight: 700; transition: transform .15s; }
+button.fold.open .chev, #console.open #consoleHead .chev { transform: rotate(90deg); }
+.badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 700; line-height: 18px; }
+.badge.err { background: var(--errSoft); color: var(--err); }
+.badge.warn { background: var(--warnSoft); color: var(--warn); }
+.badge.cnt { background: var(--fill); color: var(--muted); }
+.badge.new::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+#consoleHead { cursor: pointer; padding: 8px 12px; gap: 8px; outline: none; }
+#consoleHead:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); border-radius: 20px; }
+#consoleTitle { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#consoleBadges { display: inline-flex; gap: 6px; }
+#console:not(.open) #consoleList { display: none; }
+#console { overflow: auto; }
+#consoleList li.hintLine { font: 12px var(--sans); color: var(--muted); border-top: none; padding-top: 0; }
+
+/* 8a.3: Verlauf als eigenes Feld unter dem KI-Bereich (wie die Meldungen) */
+#histPane { flex: 0 0 auto; max-height: 35%; overflow: auto; }
+#histPane button.fold { margin: 0; padding: 8px 12px; min-height: 38px; }
+#histPane #aiHistory { padding: 0 12px 8px; }
+/* Schmales Fenster: Sekunden-Anzeige (nur Diagnose) ausblenden, damit der Projektname Platz hat */
+@media (max-width: 900px) { #beat { display: none; } header h1 { flex: 1 1 60px; } }
+
+/* 8a.4: Name der gewählten KI immer unter den Symbolen; Eingabefeld wächst mit (keine Ziehecke) */
+#aiPane .agentRow { flex-direction: column; align-items: flex-start; gap: 6px; }
+#aiPane .agentName { padding-left: 2px; }
+#aiPrompt { resize: none; overflow: hidden; }
+
+/* 8a.6: Senden-Zeile (Hinweis rechts neben dem Knopf), Vorschlag mit zwei gleich breiten Knopf-Paaren */
+button.withIcon { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+button.withIcon svg { width: 20px; height: 20px; flex: 0 0 auto; display: block; }
+#aiPane .aiSendRow { flex-wrap: nowrap; align-items: center; gap: 12px; margin-top: 12px; }
+#aiPane .aiSendRow #aiSend { flex: 0 0 auto; }
+#aiPane .aiSendRow .aiHint { flex: 1 1 auto; margin: 0; line-height: 1.35; }
+#aiPane .aiPair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#aiPane .aiPair button { width: 100%; min-width: 0; font-size: 14px; }
+#aiPane .aiRepairRow button { width: 100%; }
+#aiPane .aiDecide { margin-top: 10px; padding: 8px; border-radius: 14px; background: var(--card, rgba(127,127,127,.12));
+  box-shadow: inset 0 0 0 1px var(--line); }
+#aiPane .aiDecide .aiAcceptBtn { background: var(--ok); border-color: var(--ok); color: #fff; box-shadow: 0 4px 14px var(--okSoft); }
+#aiPane .aiDecide .aiDiscardBtn { background: var(--danger); border-color: var(--danger); color: #fff; box-shadow: 0 4px 14px var(--errSoft); }
+#aiPane .aiDiag { font-size: 12px; color: var(--muted); margin: 4px 0; white-space: pre-wrap; }
+/* 8a.8: Kopfzeile mit Kopieren/Einfügen – schmale Fenster kompakter: STL nur als Symbol, „gespeichert“ nur als Zeichen ✓ / ● */
+@media (max-width: 1000px) {
+  #btnStl span { display: none; }
+  #btnStl.tb { min-width: 40px; padding: 6px 9px; }
+  #dirty { width: 1.1em; overflow: hidden; white-space: nowrap; }
+  header .tools button.tb.iconOnly { padding: 6px 7px; min-width: 36px; }
+  header .tools { gap: 2px; }
+}
+
+/* 8a.9: Kopfzeile auch auf dem iPhone nutzbar.
+   Projektname bekommt nur den Restplatz (mind. 64 px); passen die Werkzeuge nicht, scrollen sie seitlich (Zurück, Name und Protokoll bleiben stehen).
+   Im Querformat/auf dem iPad ändert sich nichts, solange alles passt. */
+header h1 { flex: 1 1 0; min-width: 64px; }
+header .tools { flex: 0 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
+header .tools::-webkit-scrollbar { display: none; }
+header .tools > * { flex: 0 0 auto; }
+header .tools.fadeR { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 26px), transparent); }
+header .tools.fadeL { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 26px), transparent); }
+header .tools.fadeL.fadeR { -webkit-mask-image: linear-gradient(to right, transparent, #000 26px, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(to right, transparent, #000 26px, #000 calc(100% - 26px), transparent); }
+#btnBack { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; flex: 0 0 auto; }
+#btnBack .bkArrow { font-size: 1.35em; line-height: 1; margin-top: -2px; }
+#btnLog { flex: 0 0 auto; }
+/* iPhone hochkant (schmales Fenster): Zurück nur als Pfeil, engere Abstände, kleinere Knöpfe */
+@media (max-width: 600px) {
+  #btnBack .bkText { display: none; }
+  #btnBack { padding: 6px 6px; min-width: 34px; justify-content: center; }
+  header { padding: 4px 6px; gap: 2px; margin: 6px 6px 0; }
+  header h1 { font-size: 15px; min-width: 56px; padding-left: 2px; }
+  header .tools { gap: 0; }
+  header .tools button.tb.iconOnly, #btnLog.tb.iconOnly, #btnStl.tb { min-width: 34px; padding: 5px 6px; }
+  #viewModes { padding: 2px; }
+  #viewModes .mode { min-width: 34px; padding: 5px 6px; }
+  #btnRender { padding: 6px 10px; margin: 0 3px; }
+  #dirty { flex: 0 0 auto; }
+}
+/* 8a.9: Datei-Upload – Kachel für Dateien ohne Vorschaubild (PDF, STL, Text …) */
+#aiPane .aiThumb { max-width: 140px; }
+#aiPane .aiThumb > span { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#aiPane .aiThumb > small { color: var(--muted); font-size: 11.5px; line-height: 1.3; }
+#aiPane .aiFileTile { position: relative; width: 140px; height: 100px; border-radius: 16px; border: 1px solid var(--line); background: var(--fill);
+  display: flex; align-items: center; justify-content: center; color: var(--accent); }
+#aiPane .aiFileTile svg { width: 58px; height: 58px; opacity: .8; }
+#aiPane .aiFileTile b { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); font-size: 11px; letter-spacing: .04em; color: var(--fg); }
+#aiPane .aiThumb.pdf .aiFileTile { color: var(--err); }
+#aiPane .aiThumb.stl .aiFileTile { color: var(--ok); }
+#dlgButtons #dlgUpPhotos, #dlgButtons #dlgUpFiles { flex: 1 1 auto; }
+/* 8a.11: Hinweis zur Claude-App über „An KI senden“ */
+#aiPane .aiClaudeHint { margin: 12px 0 0; padding: 8px 12px; border-radius: 14px; font-size: 13px; line-height: 1.4; color: var(--warn); background: var(--warnSoft); }
+
+/* ======================================================================================
+   Schritt 8c: Marke „Code wird Form“ – Swiss-Raster, harte Linien, keine Schatten/Unschärfe, kaum Rundungen.
+   Space Grotesk (Oberfläche) + JetBrains Mono (Code, Maße, Zahlen). Orange nur dort, wo eine Form entsteht
+   (Würfel, 3D-Modell, wichtigste Aktion „Rendern“ / „Neues Projekt“). Ausgewählt = invertiert (Schwarz/Papier).
+   Überschreibt die Glas-Optik aus 8a (Farben oben in den Variablen).
+   ====================================================================================== */
+html, body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+body::before { display: none; }
+header, #paneTabs, #editor, #params, #aiPane, #histPane, #console, :is(#projectList, #plateList) li, #status.chip, #viewHelp, #logwrap {
+  -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; background: var(--solid); border: 1px solid var(--line); }
+button, .vbar, #params .pSection, #params .pSection > .secHead, #objBox .objRow.sel, #objBox .inspector, #aiPrompt, #aiPane .aiAttBox,
+#aiPane .aiPreview, #aiPane .aiDecide, #aiPane .aiError, #aiPane .aiClaudeHint, #sketchBar, #panel .box, #dialog .box, #logwrap, #toast,
+#dlgInput, .param select, #aiPane select, #panelBody select, .param input.txt, .param input.num, .vbar input.vedit, #aiPane .aiThumb img,
+#aiPane .aiFileTile, #view, #editor, #params, #aiPane, #histPane, #console, #paneTabs, #status.chip, #viewHelp, .aiChip, .badge,
+header, :is(#projectList, #plateList) li, :is(#projectList, #plateList) .thumb, #consoleHead:focus-visible {
+  border-radius: 0; box-shadow: none; }
+#paneTabs .seg, #viewModes .mode, #viewModes { border-radius: 0 !important; }
+/* Knöpfe: Rahmen statt Fläche, fett; Hauptaktion orange; gedrückt/aktiv = invertiert */
+button { font-family: var(--sans); font-weight: 600; letter-spacing: -.005em; background: transparent; border: 1px solid var(--edge); color: var(--fg); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--onAccent); box-shadow: none; font-weight: 700; }
+button.on, button.tb.iconOnly.on { background: var(--inv); color: var(--onInv); border-color: var(--inv); }
+button.tb.iconOnly { border-color: transparent; }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .3; }
+button:active:not(:disabled) { background: var(--fill); }
+button.primary:active:not(:disabled) { background: #d93a0b; border-color: #d93a0b; }
+/* Kopfzeile: flach, volle Breite, Linie unten */
+header { margin: 0; border: none; border-bottom: 1px solid var(--line); background: var(--bg0); padding: 6px 10px; }
+header h1 { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+header h1 #titleText { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+header h1 .logo { width: 26px; height: 26px; flex: 0 0 auto; color: var(--fg); }
+#btnBack { color: var(--fg); border-color: transparent; font-weight: 700; }
+#bar { margin: 0; border-radius: 0; height: 2px; }
+#dirty { font-family: var(--mono); color: var(--muted); }
+/* Ansicht-Umschalter und Reiter: Segmente mit Rahmen, ausgewähltes Segment invertiert */
+#viewModes { background: transparent; padding: 0; border: 1px solid var(--edge); }
+#viewModes .mode { color: var(--muted); min-height: 34px; }
+#viewModes .mode + .mode { border-left: 1px solid var(--edge) !important; }
+#viewModes .mode.on { background: var(--inv); color: var(--onInv); box-shadow: none; }
+#paneTabs { padding: 0; border: 1px solid var(--edge); background: transparent; }
+#paneTabs .seg { color: var(--fg); font-weight: 600; min-height: 38px; }
+#paneTabs .seg + .seg { border-left: 1px solid var(--edge) !important; }
+#paneTabs .seg.on { background: var(--inv); color: var(--onInv); box-shadow: none; }
+/* Projekt-Flächen */
+#screenProject { padding: 8px 10px 10px; }
+#view { border: 1px solid var(--line); box-shadow: none; }
+#viewHelp { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); }
+#status.chip { font-family: var(--mono); font-size: 11.5px; border: 1px solid var(--line); color: var(--fg); }
+#status.chip.error { color: var(--err); border-color: var(--err); }
+#splitter .grip { border-radius: 0; background: var(--edge); opacity: 1; }
+#splitter.active .grip, #splitter:focus-visible .grip { background: var(--accent); }
+#editor .cm-scroller { font-family: var(--mono) !important; }
+#editor .cm-gutters { font-family: var(--mono); }
+/* Regler und Objekte */
+.boxHead h3, button.fold .t, #objBox .objGroup { font-family: var(--sans); font-weight: 700; letter-spacing: .1em; font-size: 12px; color: var(--fg); text-transform: uppercase; }
+.vbar { border: 1px solid var(--line); background: var(--field); }
+.vbar .vfill { background: var(--accentSoft); }
+.vbar .vval { color: var(--fg); font-family: var(--mono); font-weight: 600; }
+.vbar:focus-visible, .vbar.active { border-color: var(--accent); }
+#params .pSection { border: 1px solid var(--line); }
+#params .pSection > .secHead { background: transparent; font-weight: 700; }
+#params .pSection.open > .secHead { border-bottom: 1px solid var(--line); }
+#objBox .objRow { font-weight: 600; }
+#objBox .objRow.sel { background: var(--fill); box-shadow: inset 3px 0 0 var(--accent); }
+#objBox .inspector { border: 1px solid var(--edge); background: transparent; }
+#btnRepair { color: var(--fg); border-color: var(--edge); }
+.badge { font-family: var(--mono); font-weight: 600; }
+/* KI */
+#aiPane .aiWait { color: var(--accentText); }
+#aiPane .aiPreview { border: 2px solid var(--accent); background: transparent; }
+#aiPane .aiDecide { background: transparent; box-shadow: none; border: 1px solid var(--line); }
+#aiPane .aiDecide .aiAcceptBtn { box-shadow: none; }
+#aiPane .aiDecide .aiDiscardBtn { box-shadow: none; }
+button.agent { border-radius: 0; border: 1px solid var(--line); background: var(--field); }
+button.agent.on { background: var(--field); box-shadow: none; border: 2px solid var(--fg); }
+#aiPane .aiClaudeHint { border: 1px solid var(--warn); }
+#aiHistory .aiItemTop, .aiChip { font-family: var(--mono); }
+/* Fenster, Dialog, Meldung */
+#panel .box, #dialog .box { border: 2px solid var(--rule); }
+.panelHead { border-bottom: 1px solid var(--line); }
+.panelHead h3, #dialog h3 { font-weight: 700; letter-spacing: -.01em; }
+#toast { font-weight: 600; }
+#logwrap { margin: 0 10px 10px; }
+#log, #consoleList li, pre.aiCode { font-family: var(--mono); }
+
+/* ---------- Projektliste (8c, auch iPhone) ---------- */
+#screenList { padding: 16px 14px; }
+.listHead { flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; padding-bottom: 12px; border-bottom: 2px solid var(--rule); margin-bottom: 14px; }
+.listHead h2 { flex: 1 1 auto; font-size: 34px; font-weight: 700; letter-spacing: -.04em; line-height: 1; }
+.listActions { display: flex; gap: 8px; flex: 0 1 auto; min-width: 0; }
+.listActions button { min-height: 42px; }
+#btnSettings span { white-space: nowrap; }
+#screenList #status.line { max-width: 900px; margin: 0 auto 8px; padding: 0; font-family: var(--mono); font-size: 11.5px; }
+:is(#projectList, #plateList) li { flex-wrap: nowrap; gap: 10px; padding: 8px 8px 8px 10px; margin-bottom: -1px; background: var(--solid); }
+:is(#projectList, #plateList) .thumb { width: 46px; height: 46px; border-radius: 0; background: var(--bg0); border: 1px solid var(--line); }
+:is(#projectList, #plateList) .thumb svg { width: 26px; height: 26px; }
+:is(#projectList, #plateList) .open { flex: 1 1 auto; min-width: 0; padding: 4px 2px; min-height: 46px; border: none; }
+:is(#projectList, #plateList) .open:active { background: transparent; }
+:is(#projectList, #plateList) .name { font-size: 17px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:is(#projectList, #plateList) .date { font-family: var(--mono); font-size: 11.5px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:is(#projectList, #plateList) .acts { display: flex; gap: 6px; flex: 0 0 auto; }
+:is(#projectList, #plateList) li .acts button { min-height: 40px; padding: 6px 10px; font-size: 14px; color: var(--fg); background: transparent; border-color: var(--line); }
+:is(#projectList, #plateList) li .acts button.danger { color: var(--danger); }
+/* Schmal: Schaltflächen rutschen unter „Projekte“, Projekt-Aktionen nur als Symbol */
+@media (max-width: 600px) {
+  .listHead h2 { flex-basis: 100%; font-size: 30px; }
+  .listActions { flex: 1 1 100%; }
+  .listActions button { flex: 1 1 0; min-width: 0; padding: 8px 10px; }
+  .listActions button#btnLog { flex: 0 0 auto; }
+  :is(#projectList, #plateList) li { padding: 6px 6px 6px 8px; gap: 8px; }
+  :is(#projectList, #plateList) .thumb { width: 40px; height: 40px; }
+  :is(#projectList, #plateList) .thumb svg { width: 22px; height: 22px; }
+  :is(#projectList, #plateList) .name { font-size: 16px; }
+  :is(#projectList, #plateList) .acts { gap: 2px; }
+  :is(#projectList, #plateList) li .acts button { width: 40px; min-width: 40px; padding: 0; border-color: transparent; }
+  :is(#projectList, #plateList) li .acts button span { display: none; }
+}
+
+/* ---------- Titel in der Scriptable-Leiste (8c, nur Hochformat, siehe updateNavMode in app.js) ---------- */
+#navTitle { position: fixed; z-index: 40; left: 84px; right: 84px; top: calc(var(--safeTop, env(safe-area-inset-top, 0px)) - 46px); height: 44px;
+  display: flex; align-items: center; justify-content: center; gap: 8px; pointer-events: none; color: var(--fg); }
+#navTitle .logo { width: 30px; height: 30px; flex: 0 0 auto; }
+#navTitle .navText { display: flex; flex-direction: column; justify-content: center; min-width: 0; line-height: 1.1; }
+#navTitle .brand { font-size: 17px; letter-spacing: -.03em; white-space: nowrap; }
+#navTitle .brand b { font-weight: 700; }
+#navTitle .brand span { font-weight: 500; }
+#navProj { display: none; align-items: baseline; gap: 6px; min-width: 0; }
+#navName { font-size: 15px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#navDirty { font-family: var(--mono); font-size: 11px; color: var(--ok); flex: 0 0 auto; }
+#navDirty.unsaved { color: var(--muted); }
+/* Im Projekt: oben klein „ScriptSCAD Studio“, darunter der Projektname */
+#navTitle.proj { justify-content: flex-start; }
+#navTitle.proj .brand { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+#navTitle.proj .brand b, #navTitle.proj .brand span { font-weight: 700; }
+#navTitle.proj #navProj { display: flex; }
+#navTitle.proj .logo { width: 26px; height: 26px; }
+/* Kopfzeile enthält dann nur Knöpfe; in der Projektliste entfällt sie ganz */
+body.navMode header h1, body.navMode #dirty, body.navMode #beat { display: none !important; }
+body.navMode header .tools { flex: 1 1 auto; justify-content: space-between; }
+body.navMode.listScreen header { display: none; }
+body.navMode.listScreen #bar { margin-top: 0; }
+/* 8c: Bereiche dürfen schmaler als ihr Inhalt werden (sonst schob z. B. der Regler-Reiter auf dem iPhone die Seite seitlich heraus) */
+#screenProject, #screenList { min-width: 0; }
+
+/* 7f: Claude-App per Kopieren/Einfügen */
+#aiPane .aiClaudeHint { color: var(--fg); background: var(--fill); }
+#aiPane .aiSendRow #aiPasteAnswer { flex: 0 0 auto; }
+#aiPane .aiSendRow { flex-wrap: wrap; }
+#aiPane .aiSendRow .aiHint { flex: 1 1 220px; }
+#aiPane .aiCopied { margin-top: 12px; padding: 10px 14px; border-radius: 0; border: 1px solid var(--line); background: var(--okSoft); font-size: 14px; line-height: 1.45; }
+#aiPane .aiCopied .aiCopiedTitle { margin: 0 0 4px; font-weight: 600; color: var(--ok); }
+#aiPane .aiCopied ol { margin: 0; padding-left: 22px; }
+#aiPane .aiCopied .aiCopiedAttach { margin: 8px 0 0; font-weight: 600; }
+
+/* 7h: Vorlagen-Leiste über den Variablen */
+.presetBar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 10px; }
+.presetBar select { flex: 1 1 160px; min-width: 0; min-height: 40px; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 0; background: var(--field); color: var(--fg); }
+.presetBar button:disabled, .presetBar select:disabled { opacity: .45; }
+
+/* Zahlen-Bedienelement „‹ Zahl ›“ (vctl.js, Schritt 9d) */
+.vctl { display: flex; align-items: stretch; gap: 4px; min-width: 0; }
+.vctl .vbar { flex: 1 1 auto; }
+.vctl .varr { flex: 0 0 auto; min-width: 40px; min-height: 40px; padding: 0 6px; font: 600 20px/1 var(--sans); border-radius: 9px; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.vctl .varr:disabled { opacity: .35; }
+.vctl.active .varr:active { border-color: var(--accent); }
+.vbar .vunit { position: relative; font-size: 12px; color: var(--muted); white-space: nowrap; pointer-events: none; }
+.vbar.nolabel { justify-content: flex-end; }
+.vctl .vbar { touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.vbar.nodrag { cursor: text; }
+.vrow .vctl { flex: 1 1 30%; min-width: 118px; gap: 2px; }
+.vrow .vctl .varr { min-width: 26px; padding: 0 2px; font-size: 17px; }
+.vrow .vctl .vbar { padding: 0 6px; gap: 4px; }
+.param .pCtl > .vctl { flex: 1; }
+
+/* 10h: Autovervollständigung im Editor (CodeMirror-Liste) – Farben wie die App, große Zeilen für Finger */
+.cm-tooltip.cm-tooltip-autocomplete { background: var(--solid); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px var(--shadow, rgba(0,0,0,.2)); overflow: hidden; }
+.cm-tooltip.cm-tooltip-autocomplete > ul { font-family: var(--mono); max-height: 14em; }
+.cm-tooltip.cm-tooltip-autocomplete > ul > li { padding: 6px 10px; line-height: 1.3; }
+.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] { background: var(--accent); color: #fff; }
+.cm-tooltip-autocomplete .cm-completionDetail { color: var(--muted); font-style: normal; margin-left: .6em; }
+.cm-tooltip-autocomplete li[aria-selected] .cm-completionDetail { color: rgba(255,255,255,.85); }
+.cm-tooltip.cm-completionInfo { background: var(--solid); color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; font-size: 12px; }
+
+/* 10n: Rendern als Knopf oben rechts im Code-Fenster (nur im Reiter Code sichtbar – Regler und KI rendern selbst) */
+#editor { position: relative; }
+#btnRender.renderFab { position: absolute; top: 8px; right: 12px; z-index: 6; margin: 0; padding: 7px 14px; min-height: 36px; border-radius: 999px; box-shadow: 0 4px 14px var(--shadow, rgba(0,0,0,.25)); }
+
+/* 10o: Über & Lizenzen (about.js, Studio-Panel und Slicer-Einstellungen) */
+.about .aboutProg { font-weight: 600; margin: 4px 0 8px; }
+.about h4 { margin: 14px 0 6px; }
+.aboutList { list-style: none; margin: 0; padding: 0; }
+.about { text-align: left; }
+#panelBody .about .hint, .about .hint { text-align: left; margin: 4px 0 8px; padding: 0; font-size: 13px; line-height: 1.4; }
+#panelBody .aboutList li, .aboutList li { display: block; padding: 8px 0; border-top: 1px solid var(--line, rgba(127,127,127,.25)); }
+.aboutList .hint { margin: 2px 0 0; }
+#panelBody .aboutLic, .aboutLic { flex: none; color: var(--muted); font-size: 13px; }
+.aboutUrl { font-family: var(--mono, ui-monospace, monospace); font-size: 12px; color: var(--muted); word-break: break-all; -webkit-user-select: text; user-select: text; }
