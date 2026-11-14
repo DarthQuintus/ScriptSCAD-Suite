@@ -129,7 +129,7 @@ If any of these upstream sources become unavailable, open an issue and you will 
 
 ## Releases
 
-A tag `v<version>` (for example `v10o.1`) starts the GitHub Action [`.github/workflows/release.yml`](../.github/workflows/release.yml). It builds two files and attaches them to a GitHub release:
+A tag `v<version>` (for example `v10o.2`) – or running it by hand under *Actions › Release › Run workflow*, which creates the tag from `version.json` – starts the GitHub Action [`.github/workflows/release.yml`](../.github/workflows/release.yml). It builds two files and attaches them to a GitHub release:
 
 | File | Content | For |
 |---|---|---|
