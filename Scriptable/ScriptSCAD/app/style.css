@@ -695,3 +695,7 @@ body.navMode.listScreen #bar { margin-top: 0; }
 .aboutList .hint { margin: 2px 0 0; }
 #panelBody .aboutLic, .aboutLic { flex: none; color: var(--muted); font-size: 13px; }
 .aboutUrl { font-family: var(--mono, ui-monospace, monospace); font-size: 12px; color: var(--muted); word-break: break-all; -webkit-user-select: text; user-select: text; }
+/* 10p: Spenden-Block (about.js, in Einstellungen und „Über & Lizenzen“ von Studio und Slicer) */
+.aboutDonate { text-align: left; margin-top: 12px; }
+.aboutDonate h4 { margin: 14px 0 6px; }
+.aboutDonate .hint { text-align: left; margin: 4px 0 8px; }

@@ -355,6 +355,13 @@ async function handle(wv, a, isClosed) {
       await run(wv, 'App.gcodeSaved(' + js(js({ path: currentTarget.slice(root.length + 1) })) + ')', false, 10000, 'G-Code bestätigen');
       return;
     }
+    case 'openUrl': {
+      // 10p: Spenden-Button. Nur die fest hinterlegte Ko-fi-Adresse wird geöffnet (keine beliebigen URLs aus der Seite).
+      if (a.url !== 'https://ko-fi.com/darthquintus') { step('openUrl abgelehnt: ' + js(a.url).slice(0, 200)); return; }
+      step('Safari öffnen: ' + a.url);
+      try { Safari.open(a.url); } catch (e) { step('FEHLER Safari: ' + e); }
+      return;
+    }
     case 'share': {
       if (!lastGcodePath) return;
       step('Teilen-Menü: ' + lastGcodePath);

@@ -139,6 +139,15 @@ Your projects, settings, printers and profiles are never touched – they live o
 There are no servers and no tracking in this project. Models, settings and logs are files in your iCloud Drive.
 Only when you tap **Send to AI** is the prompt (your request, the current code and the attachments you chose) handed to the AI you selected, via the shortcut.
 The optional update check reads one small file from GitHub, only when you tap the button.
+The **Donate** button only opens the Ko-fi page in Safari; the app itself loads nothing from Ko-fi.
+
+## Support ScriptSCAD
+
+ScriptSCAD is free and will stay free – no subscription, no ads. If it saves you time, I'm happy about a small donation of any amount (Apple Pay, PayPal or card):
+
+[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20ScriptSCAD-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/darthquintus)
+
+You can also donate from both apps: **Settings › Support ScriptSCAD**.
 
 ## License
 

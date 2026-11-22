@@ -1054,6 +1054,13 @@ async function handle(wv, a) {
       await run(wv, 'App.filesSaved(' + js(js({ id: a.id, folder: projectDir(a.id).split('/').pop(), files, paths })) + ')', false, 10000, 'Export bestätigen');
       return;
     }
+    case 'openUrl': {
+      // 10p: Spenden-Button. Nur die fest hinterlegte Ko-fi-Adresse wird geöffnet (keine beliebigen URLs aus der Seite).
+      if (a.url !== 'https://ko-fi.com/darthquintus') { step('openUrl abgelehnt: ' + js(a.url).slice(0, 200)); return; }
+      step('Safari öffnen: ' + a.url);
+      try { Safari.open(a.url); } catch (e) { step('FEHLER Safari: ' + e); }
+      return;
+    }
     case 'share': {
       // Auf dem iPad getestet (2b.2): ShareSheet mit dem Dateipfad bietet die Datei an (Slicer-App erscheint).
       // Nicht geeignet: ShareSheet mit Data (leeres Menü), QuickLook-Vorschau. 10k: auch mehrere Pfade.

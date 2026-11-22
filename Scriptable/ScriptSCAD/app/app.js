@@ -2070,10 +2070,12 @@
     ab.id = 'btnAbout';
     ab.addEventListener('click', safe('Über', showAbout));
     body.appendChild(ab);
+    body.appendChild(ScriptSCADAbout.donateBlock(lang, openDonate)); // 10p: Spenden-Button
   }
+  function openDonate(url) { send({ type: 'openUrl', url }); }
   function showAbout() {
     const body = openPanel(ScriptSCADAbout.text(lang).title);
-    ScriptSCADAbout.render(body, lang, 'studio', APP_VERSION);
+    ScriptSCADAbout.render(body, lang, 'studio', APP_VERSION, openDonate);
     body.scrollTop = 0;
   }
   // 10l: Ergebnis der Update-Prüfung

@@ -1600,13 +1600,15 @@
     $('btnSetClose').addEventListener('click', closeSettings);
     $('btnAbout').textContent = ScriptSCADAbout.text(initOpts.lang).open; // 10o: Über & Lizenzen (about.js)
     $('btnAbout').addEventListener('click', openAbout);
+    $('btnAbout').parentNode.after(ScriptSCADAbout.donateBlock(initOpts.lang, openDonate)); // 10p: Spenden-Button
     d.classList.remove('hidden');
   }
+  function openDonate(url) { queue({ type: 'openUrl', url }); }
   function openAbout() {
     const box = $('setBox'), lang = initOpts.lang;
     box.textContent = '';
     const h = document.createElement('h3'); h.textContent = ScriptSCADAbout.text(lang).title; box.appendChild(h);
-    ScriptSCADAbout.render(box, lang, 'slicer', VERSION);
+    ScriptSCADAbout.render(box, lang, 'slicer', VERSION, openDonate);
     const foot = document.createElement('div'); foot.className = 'foot';
     const back = document.createElement('button'); back.id = 'btnAboutBack'; back.textContent = '‹ ' + T.settingsTitle; back.addEventListener('click', openSettings);
     const close = document.createElement('button'); close.id = 'btnAboutClose'; close.className = 'primary'; close.textContent = T.close; close.addEventListener('click', closeSettings);

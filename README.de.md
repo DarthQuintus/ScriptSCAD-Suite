@@ -139,6 +139,15 @@ Deine Projekte, Einstellungen, Drucker und Profile bleiben unberührt – sie li
 Dieses Projekt hat keine Server und kein Tracking. Modelle, Einstellungen und Protokolle sind Dateien in deinem iCloud Drive.
 Nur wenn du **An KI senden** antippst, wird der Prompt (dein Wunsch, der aktuelle Code und die gewählten Anhänge) über den Kurzbefehl an die gewählte KI übergeben.
 Die optionale Update-Prüfung liest eine kleine Datei von GitHub – nur, wenn du den Knopf antippst.
+Der Button **Spenden** öffnet nur die Ko-fi-Seite in Safari; die App selbst lädt nichts von Ko-fi.
+
+## ScriptSCAD unterstützen
+
+ScriptSCAD ist kostenlos und bleibt es – kein Abo, keine Werbung. Wenn es dir Zeit spart, freue ich mich über eine kleine Spende in beliebiger Höhe (Apple Pay, PayPal oder Karte):
+
+[![Auf Ko-fi unterstützen](https://img.shields.io/badge/Ko--fi-ScriptSCAD%20unterst%C3%BCtzen-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/darthquintus)
+
+Auch in beiden Apps möglich: **Einstellungen › ScriptSCAD unterstützen**.
 
 ## Lizenz
 
