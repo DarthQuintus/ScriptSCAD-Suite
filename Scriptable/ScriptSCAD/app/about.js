@@ -24,11 +24,12 @@
       donateButton: '♥ Spenden über Ko-fi …',
       usedIn: { studio: 'Studio', slicer: 'Slicer', both: 'Studio + Slicer' },
       texts: 'Die vollständigen Lizenztexte und Quellenangaben liegen in der App „Dateien“ unter iCloud Drive › Scriptable › ScriptSCAD › licenses (README.txt).',
-      trademarks: 'Unabhängiges Projekt, nicht verbunden mit OpenSCAD, UltiMaker, Apple, OpenAI, Anthropic oder dem Entwickler von Scriptable.',
+      trademarks: 'Unabhängiges Projekt, nicht verbunden mit OpenSCAD, UltiMaker, Bambu Lab, OrcaSlicer, Apple, OpenAI, Anthropic oder dem Entwickler von Scriptable.',
       notes: {
         openscad: 'WebAssembly-Build aus openscad-playground 2.4.0; enthält u. a. CGAL (GPL-3.0-or-later), Manifold (Apache-2.0), Boost, Eigen, Clipper, FreeType, HarfBuzz, Fontconfig.',
         curaengine: 'WebAssembly-Build aus cura-wasm 1.5.2 (Lader MIT, © Cloud CNC); kleine Anpassungen laut docker/CuraEngine.patch im cura-wasm-Repository.',
         curadefs: 'Druckerdefinitionen aus Ultimaker Cura, über cura-wasm-definitions 1.5.1, unverändert.',
+        orcaprofiles: 'Druckerprofile (Bett, Start-/End-G-Code) aus OrcaSlicer, umgewandelt für die Druckerbibliothek.',
         bosl2: 'Fassung 2.0.716, unverändert.', nopscadlib: 'Commit 00ec2898c0a2, unverändert.', mcad: 'Unverändert.',
         fonts: 'Liberation Sans/Serif/Mono, Noto Sans (für text()); Space Grotesk, JetBrains Mono (Oberfläche).'
       }
@@ -48,11 +49,12 @@
       donateButton: '♥ Donate via Ko-fi …',
       usedIn: { studio: 'Studio', slicer: 'Slicer', both: 'Studio + Slicer' },
       texts: 'The full license texts and source references are in the Files app under iCloud Drive › Scriptable › ScriptSCAD › licenses (README.txt).',
-      trademarks: 'Independent project, not affiliated with OpenSCAD, UltiMaker, Apple, OpenAI, Anthropic or the developer of Scriptable.',
+      trademarks: 'Independent project, not affiliated with OpenSCAD, UltiMaker, Bambu Lab, OrcaSlicer, Apple, OpenAI, Anthropic or the developer of Scriptable.',
       notes: {
         openscad: 'WebAssembly build from openscad-playground 2.4.0; includes CGAL (GPL-3.0-or-later), Manifold (Apache-2.0), Boost, Eigen, Clipper, FreeType, HarfBuzz, Fontconfig and others.',
         curaengine: 'WebAssembly build from cura-wasm 1.5.2 (loader MIT, © Cloud CNC); small changes as listed in docker/CuraEngine.patch in the cura-wasm repository.',
         curadefs: 'Printer definitions from Ultimaker Cura, via cura-wasm-definitions 1.5.1, unmodified.',
+        orcaprofiles: 'Printer profiles (bed, start/end G-code) from OrcaSlicer, converted for the printer library.',
         bosl2: 'Version 2.0.716, unmodified.', nopscadlib: 'Commit 00ec2898c0a2, unmodified.', mcad: 'Unmodified.',
         fonts: 'Liberation Sans/Serif/Mono, Noto Sans (for text()); Space Grotesk, JetBrains Mono (user interface).'
       }
@@ -63,6 +65,7 @@
     { id: 'openscad', name: 'OpenSCAD', ver: '2025.03.25 (ce5039f8a)', lic: 'GPL-2.0-or-later', url: 'https://github.com/openscad/openscad', in: 'studio', file: 'OpenSCAD-GPL-2.0.txt' },
     { id: 'curaengine', name: 'CuraEngine', ver: '4.6.1', lic: 'AGPL-3.0-or-later', url: 'https://github.com/Ultimaker/CuraEngine · https://github.com/Cloud-CNC/cura-wasm', in: 'slicer', file: 'CuraEngine-cura-wasm-AGPL-3.0.txt' },
     { id: 'curadefs', name: 'Cura printer definitions', ver: '', lic: 'LGPL-3.0-or-later', url: 'https://github.com/Ultimaker/Cura · https://github.com/Cloud-CNC/cura-wasm-definitions', in: 'slicer', file: 'Cura-Definitionen-LGPL-3.0.txt' },
+    { id: 'orcaprofiles', name: 'OrcaSlicer printer profiles', ver: '', lic: 'AGPL-3.0-or-later', url: 'https://github.com/SoftFever/OrcaSlicer', in: 'slicer', file: 'OrcaSlicer-Profile-AGPL-3.0.txt' },
     { id: 'three', name: 'three.js', ver: 'r170', lic: 'MIT', url: 'https://github.com/mrdoob/three.js', in: 'both', file: 'three.js-MIT.txt' },
     { id: 'codemirror', name: 'CodeMirror 6 / Lezer', ver: '', lic: 'MIT', url: 'https://codemirror.net', in: 'studio', file: 'CodeMirror-MIT.txt' },
     { id: 'bosl2', name: 'BOSL2', ver: '', lic: 'BSD-2-Clause', url: 'https://github.com/BelfrySCAD/BOSL2', in: 'studio', file: 'BOSL2-BSD-2-Clause.txt' },

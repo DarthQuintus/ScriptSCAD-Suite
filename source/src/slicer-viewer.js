@@ -245,7 +245,16 @@ function createViewer(container) {
   fitBed();
   resize();
   return { setBed, setTheme, setObjects, setSelected, setPathsVisible, pathsVisible: () => pathsVisible, onTap: (cb) => { tapCb = cb; }, pickObject, screenPos, fitObjects,
-    showToolpaths, clearToolpaths, setProgress, render, resize, _scene: scene };
+    showToolpaths, clearToolpaths, setProgress, render, resize, _scene: scene,
+    // 10p: Vorschaubild (PNG, quadratisch) – direkt nach render() lesen, solange der WebGL-Puffer noch gefüllt ist
+    snapshot: (size) => {
+      render();
+      const src = renderer.domElement, s = Math.min(src.width, src.height);
+      if (!s) return null;
+      const c = document.createElement('canvas'); c.width = c.height = size || 512;
+      c.getContext('2d').drawImage(src, (src.width - s) / 2, (src.height - s) / 2, s, s, 0, 0, c.width, c.height);
+      return c.toDataURL('image/png');
+    } };
 }
 
 window.SlicerViewer = { createViewer };

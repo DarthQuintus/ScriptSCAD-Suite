@@ -46,7 +46,8 @@ ScriptSCAD besteht aus zwei [Scriptable](https://scriptable.app)-Skripten:
 
 **ScriptSCAD Slicer**
 - **CuraEngine** (die Slicing-Engine von UltiMaker Cura) läuft lokal
-- Rund 300 Drucker aus der Cura-Bibliothek plus eigene Drucker mit Start-/End-G-Code
+- **654 Drucker** aus den Bibliotheken von OrcaSlicer und Cura (Anycubic Kobra, Creality K1/Ender-3 V3, Elegoo Neptune 4, Prusa MK4/Core One, Voron, Qidi …) plus eigene Drucker mit Start-/End-G-Code
+- **Bambu Lab** A1, A1 mini, P1P, P1S, X1, X1 Carbon, X1E, A2L, P2S, H2S: Original-Start-Code, Export als **`.gcode.3mf`** zum Drucken von der microSD-Karte (*neu, Erfahrungsberichte willkommen*)
 - Einstellungen aus G-Code von Cura, PrusaSlicer/SuperSlicer, Bambu Studio/OrcaSlicer oder Simplify3D übernehmen
 - Einfache Einstellungen (Material, Temperaturen, Schichthöhe, Wände, Füllung, Stützen, Haftung …) plus Experten-Bereich (Naht, Bügeln, Vasen-Modus, Füllmuster); als Profile speichern
 - Mit leerer Druckplatte oder einem Modell beginnen; mehrere Objekte pro Druckplatte: verschieben, drehen, skalieren, auf eine Fläche legen, anordnen; automatische Netz-Reparatur
@@ -160,6 +161,7 @@ Enthaltene Open-Source-Bestandteile (vollständige Texte in [`Scriptable/ScriptS
 | [OpenSCAD](https://github.com/openscad/openscad) 2025.03.25 (WebAssembly-Build über [openscad-playground](https://github.com/openscad/openscad-playground)) | GPL-2.0-or-later (enthält CGAL, GPL-3.0-or-later) | Studio |
 | [CuraEngine](https://github.com/Ultimaker/CuraEngine) 4.6.1 (WebAssembly-Build über [cura-wasm](https://github.com/Cloud-CNC/cura-wasm)) | AGPL-3.0-or-later (Lader MIT) | Slicer |
 | Druckerdefinitionen aus [Ultimaker Cura](https://github.com/Ultimaker/Cura) (über [cura-wasm-definitions](https://github.com/Cloud-CNC/cura-wasm-definitions)) | LGPL-3.0-or-later | Slicer |
+| Druckerprofile aus [OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) (umgewandelt) | AGPL-3.0-or-later | Slicer |
 | [three.js](https://github.com/mrdoob/three.js) r170 | MIT | beide |
 | [CodeMirror 6](https://codemirror.net) | MIT | Studio |
 | [BOSL2](https://github.com/BelfrySCAD/BOSL2) | BSD-2-Clause | Studio |
@@ -169,7 +171,7 @@ Enthaltene Open-Source-Bestandteile (vollständige Texte in [`Scriptable/ScriptS
 
 Quellen und Bauskripte aller erzeugten Dateien liegen in [`source/`](source). Details: [docs/TECHNICAL.md](docs/TECHNICAL.md#licenses-and-source-code) (englisch).
 
-Unabhängiges Projekt, nicht verbunden mit dem OpenSCAD-Projekt, UltiMaker, Apple, OpenAI, Anthropic oder dem Entwickler von Scriptable. Alle Marken gehören ihren Inhabern.
+Unabhängiges Projekt, nicht verbunden mit dem OpenSCAD-Projekt, UltiMaker, Bambu Lab, OrcaSlicer, Apple, OpenAI, Anthropic oder dem Entwickler von Scriptable. Alle Marken gehören ihren Inhabern.
 
 ---
 

@@ -7,11 +7,11 @@
 // 9e: Druckplatte mit mehreren Objekten; STL aus der Dateien-App (Kopie in slicer/stl/).
 // 9a: STL aus Studio (projects/<id>/export/*.stl) mit CuraEngine slicen, G-Code speichern/teilen. 9b: Studio-Layout, 3D-Vorschau, Zeitachse.
 
-const VERSION = '10o.2'; // bei jeder Lieferung erhöhen
+const VERSION = '10p.3'; // bei jeder Lieferung erhöhen
 const CHUNK = 262144;
 const GCODE_CHUNK = 524288;
 const LOG_MAX_LINES = 600;
-const APP_FILES = ['slicer.html', 'slicer.js', 'slicer-core.js', 'slicer-settings.js', 'slicer-import.js', 'slicer-i18n.js', 'projekte.js', 'vctl.js', 'ui-common.js', 'about.js', 'style.css', 'slicer/curaengine.js', 'slicer/curaengine.wasm', 'slicer/viewer.js',
+const APP_FILES = ['slicer.html', 'slicer.js', 'slicer-core.js', 'export.js', 'slicer-settings.js', 'slicer-import.js', 'slicer-i18n.js', 'projekte.js', 'vctl.js', 'ui-common.js', 'about.js', 'settings-ui.js', 'update.js', 'update-quelle.json', 'style.css', 'slicer/curaengine.js', 'slicer/curaengine.wasm', 'slicer/viewer.js',
   'slicer/definitions/fdmprinter.def.json', 'slicer/definitions/fdmextruder.def.json', 'slicer/standard.json', 'slicer/drucker.json',
   'fonts/SpaceGrotesk-400.woff2', 'fonts/SpaceGrotesk-500.woff2', 'fonts/SpaceGrotesk-700.woff2', 'fonts/JetBrainsMono-400.woff2', 'fonts/JetBrainsMono-600.woff2'];
 
@@ -207,6 +207,7 @@ async function gcodeTarget(a) {
   return fm.joinPath(slicerDir, (a.plateName ? safeFileName(a.plateName) : 'Druckplatte') + '.gcode');
 }
 let lastGcodePath = null;
+let updater = null; // 10p.3: app/update.js
 
 async function sendBase64(wv, name, b64, isClosed) {
   const pad = b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0;
@@ -346,13 +347,18 @@ async function handle(wv, a, isClosed) {
       const text = parts.join('');
       if (text.length !== a.length) throw new Error('G-Code unvollständig: ' + text.length + '/' + a.length);
       currentTarget = await gcodeTarget(a);
+      if (a.bambu) currentTarget += '.3mf'; // 10p: Bambu Lab → <Name>.gcode.3mf (Inhalt kommt als base64)
       const dir = currentTarget.slice(0, currentTarget.lastIndexOf('/'));
       if (!fm.fileExists(dir)) fm.createDirectory(dir, true);
       if (fm.fileExists(currentTarget)) fm.remove(currentTarget);
-      fm.writeString(currentTarget, text);
+      if (a.bambu) fm.write(currentTarget, Data.fromBase64String(text)); else fm.writeString(currentTarget, text);
       lastGcodePath = currentTarget;
       step('G-Code gespeichert: ' + currentTarget.slice(root.length + 1) + ' (' + Math.round(text.length / 1024) + ' KB, ' + a.chunks + ' Stücke, ' + ((Date.now() - t) / 1000).toFixed(2) + ' s) · ' + a.summary);
       await run(wv, 'App.gcodeSaved(' + js(js({ path: currentTarget.slice(root.length + 1) })) + ')', false, 10000, 'G-Code bestätigen');
+      return;
+    }
+    case 'checkUpdate': case 'downloadUpdate': case 'saveUpdateToFiles': { // 10p.3: Updates auch im Slicer (app/update.js)
+      await updater.handle(a, (fn, r) => run(wv, 'App.' + fn + '(' + js(js(r)) + ')', false, 10000, 'Update'));
       return;
     }
     case 'openUrl': {
@@ -514,6 +520,7 @@ try {
   }
   for (const f of APP_FILES) await fm.downloadFileFromiCloud(fm.joinPath(appDir, f));
   store = new Function((await readText(fm.joinPath(appDir, 'projekte.js'))) + '\nreturn ProjectStore;')()(fm, root, step);
+  updater = new Function((await readText(fm.joinPath(appDir, 'update.js'))) + '\nreturn ScriptSCADUpdate;')()(fm, root, appDir, VERSION, step, readText); // 10p.3
   const moved = await store.migrate(); // 9e.3: alte Ordner „p2026…“ → Projektname
   if (moved) step('Projektordner umbenannt: ' + moved);
   await migratePlates();

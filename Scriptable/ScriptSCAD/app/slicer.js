@@ -9,7 +9,7 @@
 // darunter Zeitachse (▶, Zeit-Regler) und Schicht-Regler. Oben: Slicen, G-Code exportieren (Teilen / In Dateien).
 (function () {
   'use strict';
-  const VERSION = '10o.2';
+  const VERSION = '10p.3';
   const $ = (id) => document.getElementById(id);
   const fmt = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => (v && k in v ? v[k] : ''));
   let T = window.SLICER_I18N.de;
@@ -104,7 +104,8 @@
   const MACHINE_KEYS = ['bedX', 'bedY', 'bedZ', 'nozzle', 'filamentDiameter', 'flavor'];
   // 9g: eigene Profile (ScriptSCAD/slicer/profile.json): Parameter-Profile { Name: { material, values } } und eigene Drucker
   let profiles = { params: {}, printers: [] };
-  function printerById(id) { return (standard && standard.printers.find((p) => p.id === id)) || profiles.printers.find((p) => p.id === id) || library.find((p) => p.id === id) || null; }
+  function printerById(id) { return (standard && standard.printers.find((p) => p.id === id)) || profiles.printers.find((p) => p.id === id) || library.find((p) => p.id === id) ||
+    library.find((p) => p.alias && p.alias.includes(id)) || null; } // 10p: alte Cura-Kennung → neuer Orca-Eintrag
   function materialValues(pr, m) { return Object.assign({}, standard.materials[m] || {}, (pr && pr.materials && pr.materials[m]) || {}); }
   function machineOf(pr) { const o = {}; for (const k of MACHINE_KEYS) o[k] = pr[k]; if (!o.flavor) o.flavor = 'RepRap (Marlin/Sprinter)'; return o; }
   // Vorschläge des Druckers (Rückzug, Geschwindigkeiten) auf die Werte anwenden
@@ -195,6 +196,10 @@
         throw e;
       }
       const placed = SlicerCore.mergeObjects(plate.objects);
+      // 10p: Werkstoff + Lage des Modells auf dem Bett (Druckerkoordinaten) für Start-Code-Makros (z. B. Bambu: Bett nur dort abtasten, wo gedruckt wird)
+      p.material = material;
+      const off = p.centerZero ? [0, 0] : [p.bedX / 2, p.bedY / 2];
+      p.bounds = { min: [placed.min[0] + off[0], placed.min[1] + off[1], placed.min[2]], max: [placed.max[0] + off[0], placed.max[1] + off[1], placed.max[2]] };
       const settings = SlicerCore.curaSettings(p);
       if (settings.missing.length) log('Unbekannte Platzhalter im Start-/End-Code: ' + settings.missing.join(', '));
       if (settings.unresolved.length) { const e = new Error(fmt(T.unresolved, { list: settings.unresolved.join(' ') })); e.user = true; throw e; } // Hinweis, kein Programmfehler
@@ -216,18 +221,26 @@
       const raw = res.raw;
       if (!res.meta) throw new Error('CuraEngine ohne Ergebnisdaten');
       const meta = { flavor: res.meta.flavor, printTime: res.meta.printTime, volume: res.meta.volume, filamentMm: SlicerCore.filamentLength(res.meta.volume, p.filamentDiameter) };
-      const gcode = SlicerCore.finishGcode(raw, meta, { layerHeight: p.layerHeight, version: VERSION, printer: p.name, model: plateTitle() });
+      const gcode = SlicerCore.finishGcode(raw, meta, { layerHeight: p.layerHeight, version: VERSION, printer: p.name, model: plateTitle(), profile: p });
       const tP = performance.now();
       const tp = SlicerCore.buildToolpaths(gcode, meta.printTime);
       const prepMs = performance.now() - tP;
       result = { stale: false, gcode, lines: gcode.split('\n'), tp, meta, size: placed.size, triangles: placed.triangles, sliceMs, totalMs: performance.now() - t0, worker: !!res.worker };
+      meta.weight = SlicerCore.filamentWeight(meta.filamentMm, p.filamentDiameter, material);
       const summary = plateTitle() + ' (' + plate.objects.length + ' Obj.), ' + material + ', ' + placed.triangles + ' Dreiecke, ' + tp.layerStart.length + ' Ebenen, ' + tp.count + ' Bahnstücke, Druckzeit ' +
         SlicerCore.fmtTime(meta.printTime) + ', Filament ' + (meta.filamentMm / 1000).toFixed(2) + ' m, Slicen ' + Math.round(sliceMs) + ' ms (' + (res.worker ? 'Hintergrund' : 'Seite') + '), Vorschau ' + Math.round(prepMs) + ' ms';
       log(summary);
       progress(0);
       renderResult();
       selectObject(null);
-      queue({ type: 'gcodeReady', length: gcode.length, chunks: Math.max(1, Math.ceil(gcode.length / 524288)), summary, plateName: plate.name, pid: plate.pid, srcs: plate.objects.map((o) => o.src) });
+      const ready = { type: 'gcodeReady', length: gcode.length, chunks: Math.max(1, Math.ceil(gcode.length / 524288)), summary, plateName: plate.name, pid: plate.pid, srcs: plate.objects.map((o) => o.src) };
+      if (p.bambu) { // 10p: Bambu → .gcode.3mf (binär, als base64 abgeholt)
+        const b = makeBambu(gcode, meta, p);
+        result.b64 = b.b64;
+        Object.assign(ready, { bambu: true, length: b.b64.length, chunks: Math.max(1, Math.ceil(b.b64.length / 524288)) });
+        log('Bambu-Paket: ' + Math.round(b.bytes / 1024) + ' KB, MD5 ' + b.md5 + ', Drucker-Kennung ' + p.bambu.modelId);
+      }
+      queue(ready);
     } catch (e) {
       if (e.user) { log('Nicht gesliced: ' + e.message); queue({ type: 'log', msg: 'Nicht gesliced: ' + e.message }); } else logError('slice', e);
       progress(0);
@@ -336,7 +349,20 @@
     try { raw = M.FS.readFile('/o.gcode', { encoding: 'utf8' }); } catch (e) { log(out.slice(-15).join('\n')); throw new Error('CuraEngine hat keinen G-Code geschrieben'); }
     return { raw, meta, worker: false };
   }
-  function gcodeChunk(i, size) { return result ? result.gcode.slice(i * size, (i + 1) * size) : ''; }
+  function gcodeChunk(i, size) { return result ? (result.b64 || result.gcode).slice(i * size, (i + 1) * size) : ''; }
+  // 10p: Bambu-Paket bauen: G-Code + Vorschaubild (3D-Ansicht) → .gcode.3mf als base64
+  function makeBambu(gcode, meta, p) {
+    let png = null;
+    try {
+      const url = viewer && viewer.snapshot ? viewer.snapshot(512) : null;
+      if (url && url.startsWith('data:image/png;base64,')) { const bin = atob(url.slice(22)); png = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) png[k] = bin.charCodeAt(k); }
+    } catch (e) { log('Vorschaubild fehlgeschlagen: ' + e.message); }
+    const r = SlicerCore.bambu3mf(gcode, { modelId: p.bambu.modelId, nozzle: p.nozzle, printTime: meta.printTime, weight: meta.weight, lengthM: meta.filamentMm / 1000,
+      material, title: plateTitle(), png, supportUsed: !!p.support }, SCADExport.zip);
+    let b64 = '';
+    for (let k = 0; k < r.bytes.length; k += 0x8000) b64 += String.fromCharCode.apply(null, r.bytes.subarray(k, k + 0x8000));
+    return { b64: btoa(b64), bytes: r.bytes.length, md5: r.md5 };
+  }
   function gcodeSaved(info) {
     result.saved = info.path;
     status(fmt(T.sliced, { sec: (result.totalMs / 1000).toFixed(1) }) + ' ' + fmt(T.savedTo, { path: info.path }));
@@ -461,6 +487,11 @@
       pl.appendChild(li);
     }
     $('plateHead').classList.toggle('hidden', !plates.length);
+    // 10p.3: leere Kopfzeile ganz ausblenden; „+ Neue Druckplatte“ + „Einstellungen“ stehen immer in der obersten Kopfzeile (wie Studio)
+    $('plateHead').parentNode.classList.toggle('hidden', !plates.length);
+    const acts = document.querySelector('#screenList .listActions');
+    const top = plates.length ? $('plateHead').parentNode : $('listTitle').parentNode;
+    if (acts && acts.parentNode !== top) top.appendChild(acts);
     // Modelle: antippen = neue Druckplatte mit diesem Modell
     const ul = $('projectList');
     ul.innerHTML = '';
@@ -895,6 +926,7 @@
     btn.addEventListener('click', openPicker);
     rowP.appendChild(btn);
     box.appendChild(rowP);
+    if (profile && profile.bambu) { const bn = document.createElement('p'); bn.className = 'note'; bn.id = 'bambuNote'; bn.textContent = T.bambuNote; box.appendChild(bn); } // 10p
     // 10c: Drucker aus einer G-Code-Datei des bisherigen Slicers anlegen (gleicher Ablauf wie „G-Code importieren …“ in der Liste)
     const rowI = document.createElement('div'); rowI.className = 'setRow';
     const bi = document.createElement('button'); bi.id = 'btnImportPrinter'; bi.className = 'small'; bi.textContent = T.addPrinterGcode;
@@ -1009,6 +1041,8 @@
     if (!ex) for (let k = 2; printerById(id); k++) id = 'eigen-u-' + slug(n) + '-' + k;
     const np = Object.assign({ id, name: n, maker: '', note: T.ownPrinterNote, user: true, centerZero: !!pr.centerZero, round: !!pr.round, heatedBed: pr.heatedBed !== false,
       startGcode: profile.startGcode || '', endGcode: profile.endGcode || '' }, state.machine, extra || {});
+    // 10p: Schicht-G-Code, relative Extrusion und Bambu-Angaben gehören zum Drucker → mitnehmen
+    for (const k of ['layerGcode', 'beforeLayerGcode', 'relativeE', 'bambu', 'bedType']) if (pr[k] !== undefined && np[k] === undefined) np[k] = pr[k];
     np.id = id; np.name = n; np.user = true;
     profiles.printers = profiles.printers.filter((p) => p.id !== id).concat([np]);
     saveProfiles();
@@ -1517,7 +1551,7 @@
   function openExport() {
     if (!result || !result.saved) return;
     $('dlgTitle').textContent = T.exportTitle;
-    $('dlgText').textContent = fmt(T.exportText, { path: result.saved });
+    $('dlgText').textContent = fmt(T.exportText, { path: result.saved }) + (/\.gcode\.3mf$/.test(result.saved) ? '\n\n' + T.exportBambu : '');
     $('btnSendPrinter').classList.toggle('hidden', !netOn()); // 10m
     if (netOn()) $('btnSendPrinter').textContent = fmt(T.netSendBtn, { name: T['net_' + state.net.type] });
     $('dialog').classList.remove('hidden');
@@ -1561,7 +1595,6 @@
     $('tabPrinter').textContent = T.tabPrinter;
     $('tabParams').textContent = T.tabParams;
     $('tabObjects').textContent = T.tabObjects;
-    $('btnImport').textContent = T.importGcode;
     $('btnNewPlate').textContent = T.newPlate;
     iconButton('btnSettings', ICON.settings, T.settingsTitle, T.settingsTitle);
     $('mode3d').textContent = T.mode3d;
@@ -1578,44 +1611,43 @@
     placeStatus();
   }
   // ---------- 10d: Einstellungen (Sprache, Darstellung) – gemeinsam mit Studio (ScriptSCAD/settings.json) ----------
+  // 10p.3: gleiches Fenster wie Studio (settings-ui.js): Auswahl, dann Spenden, Updates, Über & Lizenzen, Tastenkürzel
   function openSettings() {
-    let d = $('setDialog');
-    if (!d) { d = document.createElement('div'); d.id = 'setDialog'; d.className = 'hidden'; document.body.appendChild(d); d.addEventListener('click', (e) => { if (e.target === d) closeSettings(); }); }
-    d.innerHTML = '<div id="setBox" role="dialog"><h3></h3><div class="setGroup" id="setLang"><span class="lbl"></span><span class="segs"></span></div>' +
-      '<div class="setGroup" id="setTheme"><span class="lbl"></span><span class="segs"></span></div><p class="note"></p><div class="setGroup"><button id="btnAbout"></button></div><div class="foot"><button id="btnSetClose" class="primary"></button></div></div>';
-    d.querySelector('h3').textContent = T.settingsTitle;
-    d.querySelector('.note').textContent = T.settingsNote;
-    const group = (id, label, opts, cur, pick) => {
-      const g = d.querySelector('#' + id);
-      g.querySelector('.lbl').textContent = label;
-      for (const [val, text] of opts) {
-        const b = document.createElement('button'); b.textContent = text; b.dataset.val = val; b.classList.toggle('on', val === cur);
-        b.addEventListener('click', () => pick(val));
-        g.querySelector('.segs').appendChild(b);
-      }
-    };
-    group('setLang', T.setLanguage, [['', T.setAuto], ['de', 'Deutsch'], ['en', 'English']], initOpts.langSetting || '', (v) => changeCommon({ lang: v }));
-    group('setTheme', T.setTheme, [['system', T.setAuto], ['light', T.setLight], ['dark', T.setDark]], themeSetting, (v) => changeCommon({ theme: v }));
-    $('btnSetClose').textContent = T.close;
-    $('btnSetClose').addEventListener('click', closeSettings);
-    $('btnAbout').textContent = ScriptSCADAbout.text(initOpts.lang).open; // 10o: Über & Lizenzen (about.js)
-    $('btnAbout').addEventListener('click', openAbout);
-    $('btnAbout').parentNode.after(ScriptSCADAbout.donateBlock(initOpts.lang, openDonate)); // 10p: Spenden-Button
-    d.classList.remove('hidden');
+    const at = ScriptSCADAbout.text(initOpts.lang);
+    ScriptSCADSettings.open({
+      title: T.settingsTitle, closeLabel: T.close,
+      groups: [
+        { id: 'setLang', label: T.setLanguage, options: [['', T.setAuto], ['de', 'Deutsch'], ['en', 'English']], cur: initOpts.langSetting || '', pick: (v) => changeCommon({ lang: v }) },
+        { id: 'setTheme', label: T.setTheme, options: [['system', T.setAuto], ['light', T.setLight], ['dark', T.setDark]], cur: themeSetting, pick: (v) => changeCommon({ theme: v }), note: T.settingsNote },
+      ],
+      donate: { lang: initOpts.lang, onOpen: openDonate },
+      update: { title: T.updateTitle, text: fmt(T.updateInstalled, { v: VERSION }), button: T.updateCheck, busy: T.updateChecking, onCheck: () => queue({ type: 'checkUpdate' }) },
+      about: { title: at.title, button: at.open, onOpen: openAbout },
+      shortcuts: { title: T.shortcutsTitle, text: T.shortcuts },
+    });
   }
   function openDonate(url) { queue({ type: 'openUrl', url }); }
   function openAbout() {
-    const box = $('setBox'), lang = initOpts.lang;
-    box.textContent = '';
-    const h = document.createElement('h3'); h.textContent = ScriptSCADAbout.text(lang).title; box.appendChild(h);
-    ScriptSCADAbout.render(box, lang, 'slicer', VERSION, openDonate);
-    const foot = document.createElement('div'); foot.className = 'foot';
-    const back = document.createElement('button'); back.id = 'btnAboutBack'; back.textContent = '‹ ' + T.settingsTitle; back.addEventListener('click', openSettings);
-    const close = document.createElement('button'); close.id = 'btnAboutClose'; close.className = 'primary'; close.textContent = T.close; close.addEventListener('click', closeSettings);
-    foot.appendChild(back); foot.appendChild(close); box.appendChild(foot);
-    box.scrollTop = 0;
+    const lang = initOpts.lang;
+    ScriptSCADSettings.showAbout({ title: ScriptSCADAbout.text(lang).title, render: (box) => ScriptSCADAbout.render(box, lang, 'slicer', VERSION, openDonate),
+      backLabel: T.settingsTitle, onBack: openSettings, closeLabel: T.close });
   }
-  function closeSettings() { if ($('setDialog')) $('setDialog').classList.add('hidden'); }
+  // 10p.3: Ergebnis der Update-Prüfung (wie Studio)
+  async function updateResult(r) {
+    ScriptSCADSettings.updateDone(T.updateCheck);
+    if (r.state === 'newer') {
+      const go = await ask({ title: fmt(T.updateNewerTitle, { v: r.version }), text: fmt(T.updateNewerText, { cur: r.current, v: r.version, notes: r.notes || '–' }), ok: T.updateDownload });
+      if (go) { toast(T.updateLoading); queue({ type: 'downloadUpdate' }); }
+      return;
+    }
+    const text = r.state === 'current' ? fmt(T.updateCurrent, { v: r.current }) : r.state === 'noSource' ? T.updateNoSource : fmt(T.updateError, { msg: r.msg });
+    await ask({ title: T.updateTitle, text, ok: T.ok });
+  }
+  async function updateDownloaded(r) {
+    if (!r.ok) { await ask({ title: T.updateTitle, text: fmt(T.updateError, { msg: r.msg }), ok: T.ok }); return; }
+    if (await ask({ title: fmt(T.updateLoadedTitle, { v: r.version }), text: fmt(T.updateLoadedText, { rel: r.rel }), ok: T.saveToFiles })) queue({ type: 'saveUpdateToFiles', path: r.path });
+  }
+  function closeSettings() { ScriptSCADSettings.close(); }
   function changeCommon(c) {
     queue(Object.assign({ type: 'commonSettings' }, c));
     if (c.theme) { themeSetting = c.theme; initOpts.theme = c.theme; applyTheme(); }
@@ -1691,7 +1723,6 @@
   $('layerSlider').addEventListener('input', (e) => { stopPlay(); showPaths(); setLayer(+e.target.value); });
   $('timeSlider').addEventListener('input', (e) => { stopPlay(); showPaths(); setTime((+e.target.value / 1000) * result.tp.totalTime, 'time'); });
   $('btnPlay').addEventListener('click', () => { showPaths(); playing ? stopPlay() : startPlay(); });
-  $('btnImport').addEventListener('click', () => { if (!busy) queue({ type: 'importGcode' }); });
   $('btnNewPlate').addEventListener('click', newEmptyPlate);
   $('btnSettings').addEventListener('click', openSettings);
   // Tastenkürzel wie Studio (Hardware-Tastatur): ⌘1/2/3 Reiter, ⌘↩ Slicen, ⌘Z / ⇧⌘Z Rückgängig/Wiederholen (außerhalb von Eingabefeldern)
@@ -1722,6 +1753,7 @@
   }
 
   window.App = {
+    updateResult: (j) => updateResult(JSON.parse(j)), updateDownloaded: (j) => updateDownloaded(JSON.parse(j)), // 10p.3
     version: () => VERSION,
     init: (o) => init(typeof o === 'string' ? JSON.parse(o) : o),
     ready: () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(JSON.stringify({ w: innerWidth, h: innerHeight }))))),

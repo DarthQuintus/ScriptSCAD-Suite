@@ -46,7 +46,8 @@ ScriptSCAD is a suite of two [Scriptable](https://scriptable.app) scripts:
 
 **ScriptSCAD Slicer**
 - **CuraEngine** (the slicing engine of UltiMaker Cura) running locally
-- About 300 printers from the Cura library plus your own printers with start/end G-code
+- **654 printers** from the OrcaSlicer and Cura libraries (Anycubic Kobra, Creality K1/Ender-3 V3, Elegoo Neptune 4, Prusa MK4/Core One, Voron, Qidi …) plus your own printers with start/end G-code
+- **Bambu Lab** A1, A1 mini, P1P, P1S, X1, X1 Carbon, X1E, A2L, P2S, H2S: original start code, exported as **`.gcode.3mf`** to print from the microSD card (*new, please report your results*)
 - Take over settings from G-code of Cura, PrusaSlicer/SuperSlicer, Bambu Studio/OrcaSlicer or Simplify3D
 - Simple settings (material, temperatures, layer height, walls, infill, supports, adhesion …) plus an expert section (seam, ironing, vase mode, infill pattern); save them as profiles
 - Start from an empty print plate or a model; several objects per plate: move, rotate, scale, lay on a face, arrange; automatic mesh repair
@@ -130,6 +131,7 @@ Your projects, settings, printers and profiles are never touched – they live o
 
 ## Good to know
 
+- **Bambu Lab:** printing works via the microSD card only (LAN/cloud upload is not possible from Scriptable). Speeds are conservative. Two-nozzle models (H2D, H2C, X2D) are not supported. Feedback from Bambu owners is very welcome – [open an issue](../../issues).
 - **Check before you print.** The slicer is new. Look at the layer preview and stay near the printer for your first prints – especially with a printer or profile you have not used before.
 - Do not edit the same project on two devices at the same time (iCloud sync conflicts).
 - The AI request is the only part that needs the internet. Which data goes to which AI provider is decided by that provider's app and terms.
@@ -160,6 +162,7 @@ ScriptSCAD includes these open source components (full texts in [`Scriptable/Scr
 | [OpenSCAD](https://github.com/openscad/openscad) 2025.03.25 (WebAssembly build via [openscad-playground](https://github.com/openscad/openscad-playground)) | GPL-2.0-or-later (contains CGAL, GPL-3.0-or-later) | Studio |
 | [CuraEngine](https://github.com/Ultimaker/CuraEngine) 4.6.1 (WebAssembly build via [cura-wasm](https://github.com/Cloud-CNC/cura-wasm)) | AGPL-3.0-or-later (loader MIT) | Slicer |
 | Printer definitions from [Ultimaker Cura](https://github.com/Ultimaker/Cura) (via [cura-wasm-definitions](https://github.com/Cloud-CNC/cura-wasm-definitions)) | LGPL-3.0-or-later | Slicer |
+| Printer profiles from [OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) (converted) | AGPL-3.0-or-later | Slicer |
 | [three.js](https://github.com/mrdoob/three.js) r170 | MIT | both |
 | [CodeMirror 6](https://codemirror.net) | MIT | Studio |
 | [BOSL2](https://github.com/BelfrySCAD/BOSL2) | BSD-2-Clause | Studio |

@@ -83,7 +83,7 @@ Studio ◀── x-callback ── reads ai/response.txt → extracts the ```ope
   ```
 
 ### Updates
-`app/update-quelle.json` points to [`version.json`](../version.json) in this repository (`{ version, zip, notes }`). Studio only checks when you tap the button, downloads the update ZIP only after you confirm, and never installs anything by itself.
+`app/update-quelle.json` points to [`version.json`](../version.json) in this repository (`{ version, zip, notes }`). Studio and Slicer (shared code in `app/update.js`) only check when you tap the button, downloads the update ZIP only after you confirm, and never installs anything by itself.
 
 ## ScriptSCAD Slicer
 
@@ -97,7 +97,9 @@ STL / OBJ / 3MF ──▶ parse + repair ──▶ place on the plate ──▶ 
 ```
 
 - **Engine:** CuraEngine 4.6.1 compiled to WebAssembly by the cura-wasm project. Slicing runs in a **Web Worker**, so the page stays responsive and slicing can be cancelled; if a device cannot start the worker, the page slices on the main thread instead.
-- **Printers:** `app/slicer/drucker.json` is a condensed list of about 300 printers from the Cura definitions (build volume, origin, G-code flavor, start/end code, nozzle). The full Cura definition files in `app/slicer/definitions/` are passed to CuraEngine. Own printers and parameter profiles are stored in `ScriptSCAD/slicer/` and can be exported as one JSON file.
+- **Printers:** `app/slicer/drucker.json` is a condensed list of 654 printers (build volume, origin, G-code flavor, start/end/layer-change code, nozzle): Cura 4.6 definitions plus OrcaSlicer printer profiles (`source/tools/fetch-orca-profiles.mjs` → `source/tools/daten/orca-maschinen.json`, one 0.4 mm variant per model; a profile is only included if all its macros can be evaluated). CuraEngine gets a generic definition (`app/slicer/definitions/`) plus the values as `-s` arguments.
+- **G-code macros:** start/end/layer-change code is evaluated in `SlicerCore.fillPlaceholders` – Cura `{name}`, PrusaSlicer `[name]` and the OrcaSlicer/Bambu Studio macro language (`{if}/{elsif}/{else}/{endif}`, expressions, indexing, `local`, min/max/interpolate_table …) with values from the profile, the material and the model bounds (e.g. `first_layer_print_min` for adaptive bed probing). If the start code heats the bed/nozzle itself, CuraEngine does not prepend its own heating.
+- **Bambu Lab:** relative extrusion, `; HEADER_BLOCK_START` header, `M73` progress per layer, and export as `.gcode.3mf` (`Metadata/plate_1.gcode`, upper-case MD5, `slice_info.config` with `printer_model_id`, `model_settings.config`, thumbnail), modelled on OrcaSlicer's `bbs_3mf.cpp`. Own printers and parameter profiles are stored in `ScriptSCAD/slicer/` and can be exported as one JSON file.
 - **Settings import** reads the settings block that other slicers write into G-code (Cura `;SETTING_3`, PrusaSlicer `; prusaslicer_config`, Bambu/Orca `; CONFIG_BLOCK_START`, Simplify3D header comments) and maps it to ScriptSCAD's settings.
 - **Mesh import and repair** (`app/slicer-core.js`): STL (binary/ASCII), OBJ, 3MF (ZIP via `DecompressionStream`, units, components, transforms). Repair welds vertices, removes degenerate and duplicate triangles, orients faces per shell and closes small holes.
 - **Preview:** the G-code is parsed into moves per layer with feature types (outer wall, inner wall, top/bottom, infill, skirt, support) and drawn with three.js; the time slider replays the print using the planned feed rates.
@@ -111,6 +113,7 @@ STL / OBJ / 3MF ──▶ parse + repair ──▶ place on the plate ──▶ 
 | `app/lib/openscad.wasm`, `openscad.js` – OpenSCAD 2025.03.25 (git `ce5039f8a`) | GPL-2.0-or-later; the binary also contains CGAL (GPL-3.0-or-later), Manifold (Apache-2.0), Boost, Eigen, Clipper, FreeType, HarfBuzz, Fontconfig and others, so the binary as a whole is distributed under GPL-3.0 |
 | `app/slicer/curaengine.wasm`, `curaengine.js` – CuraEngine 4.6.1 via cura-wasm 1.5.2 | AGPL-3.0-or-later (CuraEngine), MIT (cura-wasm loader) |
 | `app/slicer/definitions/`, `drucker.json` – Cura printer definitions via cura-wasm-definitions 1.5.1 | LGPL-3.0-or-later |
+| `drucker.json` – printer profiles from OrcaSlicer (`resources/profiles`, converted) | AGPL-3.0-or-later |
 | `app/lib/viewer.js`, `app/slicer/viewer.js` – contain three.js r170 | MIT (+ GPL-3.0-or-later for the ScriptSCAD part) |
 | `app/lib/editor.js` – contains CodeMirror 6 / Lezer | MIT (+ GPL-3.0-or-later for the ScriptSCAD part) |
 | `bibliotheken/BOSL2.json`, `MCAD.json`, `NopSCADlib.json` | BSD-2-Clause, LGPL-2.1, GPL-3.0 |
@@ -123,6 +126,7 @@ All license texts and exact versions are in [`Scriptable/ScriptSCAD/licenses`](.
 - OpenSCAD: <https://github.com/openscad/openscad>, commit `ce5039f8a` (with its submodules), built by <https://github.com/openscad/openscad-playground> (npm `openscad-playground@2.4.0`)
 - CuraEngine: <https://github.com/Ultimaker/CuraEngine>, version 4.6.1, with the patch `docker/CuraEngine.patch` from <https://github.com/Cloud-CNC/cura-wasm> (npm `cura-wasm@1.5.2`)
 - Cura definitions: <https://github.com/Ultimaker/Cura>, <https://github.com/Cloud-CNC/cura-wasm-definitions> (npm `cura-wasm-definitions@1.5.1`)
+- OrcaSlicer printer profiles: <https://github.com/SoftFever/OrcaSlicer> (`resources/profiles`, fetched 2026-11-22; data in `source/tools/daten/orca-maschinen.json`)
 - three.js r170, CodeMirror 6, BOSL2, MCAD, NopSCADlib (commit `00ec2898c0a2`): see `licenses/README.txt`
 
 If any of these upstream sources become unavailable, open an issue and you will get a copy of the exact source used.

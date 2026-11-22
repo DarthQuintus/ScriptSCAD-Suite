@@ -1,5 +1,5 @@
 {
- "version": "10o.2",
- "zip": "https://github.com/DarthQuintus/ScriptSCAD-Suite/releases/download/v10o.2/ScriptSCAD-10o.2-update.zip",
- "notes": "Slicer: neue leere Druckplatte. Über & Lizenzen in beiden Apps. / Slicer: new empty print plate. About & licenses in both apps."
+ "version": "10p.3",
+ "zip": "https://github.com/DarthQuintus/ScriptSCAD-Suite/releases/download/v10p.3/ScriptSCAD-10p.3-update.zip",
+ "notes": "Bambu Lab (A1, A1 mini, P1S, X1 …) mit .gcode.3mf für die SD-Karte; Druckerbibliothek 654 Drucker (OrcaSlicer-Profile); Spenden-Button (Ko-fi); Einstellungen in Studio und Slicer vereinheitlicht, Updates auch im Slicer. / Bambu Lab (A1, A1 mini, P1S, X1 …) with .gcode.3mf for the SD card; printer library with 654 printers (OrcaSlicer profiles); donate button (Ko-fi); unified settings in Studio and Slicer, update check in the Slicer too."
 }

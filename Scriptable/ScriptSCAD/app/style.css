@@ -699,3 +699,22 @@ body.navMode.listScreen #bar { margin-top: 0; }
 .aboutDonate { text-align: left; margin-top: 12px; }
 .aboutDonate h4 { margin: 14px 0 6px; }
 .aboutDonate .hint { text-align: left; margin: 4px 0 8px; }
+/* 10p.3: gemeinsames Einstellungsfenster (settings-ui.js) – Studio und Slicer sehen gleich aus */
+#setDialog { position: fixed; inset: 0; z-index: 28; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
+#setDialog.hidden { display: none; }
+#setBox { background: var(--solid); width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.25); padding: 16px; text-align: left; }
+#setBox h3 { margin: 0 0 12px; font-size: 18px; }
+#setBox h4 { margin: 16px 0 6px; font-size: 15px; }
+#setBox .setGroup { margin: 12px 0; }
+#setBox .setGroup .lbl { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+#setBox .segs { display: flex; }
+#setBox .segs button { flex: 1; border-radius: 0; min-width: 0; padding-left: 4px; padding-right: 4px; }
+#setBox .segs button:first-child { border-radius: 10px 0 0 10px; }
+#setBox .segs button:last-child { border-radius: 0 10px 10px 0; }
+#setBox .segs button + button { border-left: none; }
+#setBox .segs button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+#setBox .note { font-size: 12.5px; color: var(--muted); margin: 4px 0 8px; line-height: 1.4; }
+#setBox .setSection, #setBox .aboutDonate { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 2px; }
+#setBox .aboutDonate h4 { margin-top: 12px; }
+#setBox .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+#setBox .aboutDonate .hint { font-size: 12.5px; color: var(--muted); line-height: 1.4; }

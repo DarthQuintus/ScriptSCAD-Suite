@@ -5,7 +5,7 @@
 //  - Dateien liest/schreibt nur Scriptable. Die Seite rendert mit OpenSCAD (WASM) und zeigt das Modell.
 (function () {
   'use strict';
-  const APP_VERSION = '10o.2'; // muss zu VERSION in main.js passen
+  const APP_VERSION = '10p.3'; // muss zu VERSION in main.js passen
   const SAVE_DELAY_MS = 2000; // automatisch speichern, so lange nach der letzten Änderung
   const SLOW_RENDER_MS = 500; // länger → Regler rendern nur noch beim Loslassen
   const FAST_RENDER_MS = 250; // wieder so schnell → wieder live
@@ -179,7 +179,7 @@
       refreshParams(true);
       updateDirty();
     }
-    if (!$('panel').classList.contains('hidden') && $('setLang')) showSettings();
+    if (window.ScriptSCADSettings && ScriptSCADSettings.isOpen() && $('setLang')) showSettings(); // 10p.3: Fenster in neuer Sprache
     return true;
   }
 
@@ -2017,71 +2017,40 @@
     }
     body.appendChild(ul);
   }
+  // 10p.3: gleiches Einstellungsfenster wie im Slicer (settings-ui.js): Auswahl, dann Spenden, Updates, Über & Lizenzen, Tastenkürzel
   function showSettings() {
-    const body = openPanel(T.settingsTitle);
-    const row = (label, input) => { const l = el('label', 'row'); l.appendChild(el('span', null, label)); l.appendChild(input); body.appendChild(l); };
-    const lg = el('select');
-    lg.id = 'setLang';
-    for (const [v, label] of [['de', 'Deutsch'], ['en', 'English']]) {
-      const o = el('option', null, label);
-      o.value = v;
-      if (v === lang) o.selected = true;
-      lg.appendChild(o);
-    }
-    lg.addEventListener('change', safe('Sprache', () => { saveSettings({ lang: lg.value }); setLang(lg.value, true); }));
-    row(T.setLang, lg);
-    const cb = el('input');
-    cb.type = 'checkbox';
-    cb.id = 'setOpenLast';
-    cb.checked = settings.openLast;
-    cb.addEventListener('change', () => saveSettings({ openLast: cb.checked }));
-    row(T.setOpenLast, cb);
-    const select = (id, values, cur, key, suffix) => {
-      const s = el('select');
-      s.id = id;
-      for (const v of values) { const o = el('option', null, v + (suffix || '')); o.value = v; if (v === cur) o.selected = true; s.appendChild(o); }
-      s.addEventListener('change', () => saveSettings({ [key]: Number(s.value) }));
-      return s;
-    };
-    const th = el('select');
-    th.id = 'setTheme';
-    for (const [v, label] of [['system', T.themeSystem], ['dark', T.themeDark], ['light', T.themeLight]]) {
-      const o = el('option', null, label);
-      o.value = v;
-      if (v === (settings.theme || 'system')) o.selected = true;
-      th.appendChild(o);
-    }
-    th.addEventListener('change', () => saveSettings({ theme: th.value }));
-    row(T.setTheme, th);
-    row(T.setFontSize, select('setFontSize', [12, 13, 14, 15, 16, 17, 18, 20, 22], settings.fontSize, 'fontSize', ' pt'));
-    row(T.setHistoryMax, select('setHistoryMax', [5, 10, 20, 30, 50], settings.historyMax, 'historyMax'));
-    body.appendChild(el('h4', null, T.updateTitle)); // 10l
-    body.appendChild(el('p', 'hint', fmt(T.updateInstalled, { v: APP_VERSION })));
-    const ub = el('button', null, T.updateCheck);
-    ub.id = 'btnUpdate';
-    ub.addEventListener('click', () => { ub.disabled = true; ub.textContent = T.updateChecking; send({ type: 'checkUpdate' }); });
-    body.appendChild(ub);
-    body.appendChild(el('h4', null, T.shortcutsTitle));
-    body.appendChild(el('p', 'hint', T.shortcuts));
-    // 10o: Über & Lizenzen (Texte + Liste in about.js, gemeinsam mit dem Slicer)
     const at = ScriptSCADAbout.text(lang);
-    body.appendChild(el('h4', null, at.title));
-    const ab = el('button', null, at.open);
-    ab.id = 'btnAbout';
-    ab.addEventListener('click', safe('Über', showAbout));
-    body.appendChild(ab);
-    body.appendChild(ScriptSCADAbout.donateBlock(lang, openDonate)); // 10p: Spenden-Button
+    const pick = (change) => () => { saveSettings(change); showSettings(); };
+    const fonts = [12, 13, 14, 15, 16, 18, 20];
+    if (fonts.indexOf(settings.fontSize) < 0) { fonts.push(settings.fontSize); fonts.sort((x, y) => x - y); }
+    const hist = [5, 10, 20, 30, 50];
+    if (hist.indexOf(settings.historyMax) < 0) { hist.push(settings.historyMax); hist.sort((x, y) => x - y); }
+    ScriptSCADSettings.open({
+      title: T.settingsTitle, closeLabel: T.close,
+      groups: [
+        { id: 'setLang', label: T.setLang, options: [['', T.setAuto], ['de', 'Deutsch'], ['en', 'English']], cur: settings.lang || '',
+          pick: (v) => { saveSettings({ lang: v }); setLang(v || settings.sysLang || 'de', true); showSettings(); } },
+        { id: 'setTheme', label: T.setTheme, options: [['system', T.setAuto], ['light', T.themeLight], ['dark', T.themeDark]], cur: settings.theme || 'system',
+          pick: (v) => pick({ theme: v })(), note: T.settingsNote },
+        { id: 'setOpenLast', label: T.setOpenLast, options: [[false, T.setOff], [true, T.setOn]], cur: !!settings.openLast, pick: (v) => pick({ openLast: v })() },
+        { id: 'setFontSize', label: T.setFontSize + ' (pt)', options: fonts.map((v) => [v, String(v)]), cur: settings.fontSize, pick: (v) => pick({ fontSize: v })() },
+        { id: 'setHistoryMax', label: T.setHistoryMax, options: hist.map((v) => [v, String(v)]), cur: settings.historyMax, pick: (v) => pick({ historyMax: v })() },
+      ],
+      donate: { lang, onOpen: openDonate },
+      update: { title: T.updateTitle, text: fmt(T.updateInstalled, { v: APP_VERSION }), button: T.updateCheck, busy: T.updateChecking, onCheck: () => send({ type: 'checkUpdate' }) },
+      about: { title: at.title, button: at.open, onOpen: safe('Über', showAbout) },
+      shortcuts: { title: T.shortcutsTitle, text: T.shortcuts },
+    });
   }
   function openDonate(url) { send({ type: 'openUrl', url }); }
   function showAbout() {
-    const body = openPanel(ScriptSCADAbout.text(lang).title);
-    ScriptSCADAbout.render(body, lang, 'studio', APP_VERSION, openDonate);
-    body.scrollTop = 0;
+    const at = ScriptSCADAbout.text(lang);
+    ScriptSCADSettings.showAbout({ title: at.title, render: (box) => ScriptSCADAbout.render(box, lang, 'studio', APP_VERSION, openDonate),
+      backLabel: T.settingsTitle, onBack: showSettings, closeLabel: T.close });
   }
   // 10l: Ergebnis der Update-Prüfung
   async function updateResult(r) {
-    const b = $('btnUpdate');
-    if (b) { b.disabled = false; b.textContent = T.updateCheck; }
+    ScriptSCADSettings.updateDone(T.updateCheck);
     if (r.state === 'newer') {
       const go = await dialog({ title: fmt(T.updateNewerTitle, { v: r.version }), text: fmt(T.updateNewerText, { cur: r.current, v: r.version, notes: r.notes || '–' }), okText: T.updateDownload });
       if (go) { toast(T.updateLoading); send({ type: 'downloadUpdate' }); }

@@ -19,21 +19,9 @@
   #btnRemoveObj { min-height: 34px; padding: 4px 12px; font-size: 13px; }
   #plateList .del { flex: 0 0 auto; min-height: 40px; min-width: 44px; padding: 0 10px; font-size: 20px; }
   #plateList { margin-bottom: 18px; }
-  #addDialog, #askDialog, #setDialog { position: fixed; inset: 0; z-index: 30; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #addDialog, #askDialog { position: fixed; inset: 0; z-index: 30; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 20px; }
   .netRow { flex-wrap: wrap; }
   .netRow input { flex: 1 1 180px; min-width: 0; min-height: 40px; padding: 6px 10px; font: inherit; border: 1px solid var(--line); border-radius: 10px; background: var(--field, var(--solid)); color: var(--fg); }
-  #setBox { background: var(--solid); width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.25); padding: 16px; }
-  #setBox h3 { margin: 0 0 12px; font-size: 18px; }
-  #setBox .setGroup { margin: 12px 0; }
-  #setBox .setGroup .lbl { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
-  #setBox .segs { display: flex; }
-  #setBox .segs button { flex: 1; border-radius: 0; }
-  #setBox .segs button:first-child { border-radius: 10px 0 0 10px; }
-  #setBox .segs button:last-child { border-radius: 0 10px 10px 0; }
-  #setBox .segs button + button { border-left: none; }
-  #setBox .segs button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
-  #setBox .note { font-size: 12.5px; color: var(--muted); }
-  #setBox .foot { display: flex; justify-content: flex-end; margin-top: 12px; }
   #addBox { background: var(--solid); width: 100%; max-width: 520px; max-height: 85%; display: flex; flex-direction: column; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.25); overflow: hidden; }
   #addHead { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
   #addHead h3 { flex: 1; margin: 0; font-size: 17px; }
@@ -83,9 +71,6 @@
   /* 9g: Start-/End-G-Code */
   .gcLabel { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .gcEdit { display: block; width: 100%; box-sizing: border-box; font: 12.5px/1.5 var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 0; background: var(--field); color: var(--fg); resize: vertical; white-space: pre; overflow: auto; flex: 0 0 auto; }
-  #screenList .listHead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-  #screenList .listHead h2 { flex: 1; }
-  #btnImport, #btnNewPlate { min-height: 36px; padding: 6px 12px; font-size: 14px; }
   .secHead { margin: 10px 0 2px; font-size: 13px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 4px; }
   .secHead:first-child { margin-top: 0; }
   .ctl { flex-wrap: nowrap; min-height: 40px; }
@@ -156,9 +141,9 @@
 
   <main>
     <section id="screenList">
-      <div class="listHead"><h2 id="plateHead" class="hidden"></h2></div>
+      <div class="listHead hidden"><h2 id="plateHead" class="hidden"></h2></div>
       <ul id="plateList"></ul>
-      <div class="listHead"><h2 id="listTitle"></h2><button id="btnNewPlate" class="primary"></button><button id="btnSettings"></button><button id="btnImport"></button></div>
+      <div class="listHead"><h2 id="listTitle"></h2><div class="listActions"><button id="btnNewPlate" class="primary"></button><button id="btnSettings"></button></div></div>
       <ul id="projectList"></ul>
       <p id="emptyList" class="hint hidden"></p>
     </section>
@@ -237,11 +222,13 @@
 
   <script src="slicer-i18n.js"></script>
   <script src="slicer-core.js"></script>
+  <script src="export.js"></script>
   <script src="slicer-settings.js"></script>
   <script src="slicer-import.js"></script>
   <script src="vctl.js"></script>
   <script src="ui-common.js"></script>
   <script src="about.js"></script>
+  <script src="settings-ui.js"></script>
   <script src="slicer/curaengine.js"></script>
   <script src="slicer/viewer.js"></script>
   <script src="slicer.js"></script>

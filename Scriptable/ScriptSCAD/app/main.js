@@ -8,10 +8,10 @@
 //  - Kein setTimeout in Scriptable → Timer.
 //  - WASM als base64 in 256-KB-Stücken übertragen, in der Seite einmal kompilieren.
 
-const VERSION = '10o.2'; // bei jeder Lieferung erhöhen – steht im Protokoll und in der Kopfzeile
+const VERSION = '10p.3'; // bei jeder Lieferung erhöhen – steht im Protokoll und in der Kopfzeile
 const CHUNK = 262144;
 const LOG_MAX_LINES = 600;
-const APP_FILES = ['index.html', 'style.css', 'app.js', 'vctl.js', 'ui-common.js', 'about.js', 'export.js', 'update-quelle.json', 'i18n.js', 'params.js', 'objects.js', 'projekte.js', 'beispiel.scad', 'beispiel-en.scad', 'lib/viewer.js', 'lib/editor.js', 'lib/scad-hints.js', 'lib/openscad.js', 'lib/openscad.wasm', 'bibliothek/scriptscad.scad',
+const APP_FILES = ['index.html', 'style.css', 'app.js', 'vctl.js', 'ui-common.js', 'about.js', 'settings-ui.js', 'update.js', 'export.js', 'update-quelle.json', 'i18n.js', 'params.js', 'objects.js', 'projekte.js', 'beispiel.scad', 'beispiel-en.scad', 'lib/viewer.js', 'lib/editor.js', 'lib/scad-hints.js', 'lib/openscad.js', 'lib/openscad.wasm', 'bibliothek/scriptscad.scad',
   'fonts/SpaceGrotesk-400.woff2', 'fonts/SpaceGrotesk-500.woff2', 'fonts/SpaceGrotesk-700.woff2', 'fonts/JetBrainsMono-400.woff2', 'fonts/JetBrainsMono-600.woff2'];
 
 const fm = STARTER.fm;
@@ -797,53 +797,8 @@ async function sendList(wv) {
   await run(wv, 'App.setProjects(' + js(js(list)) + ')', false, 10000, 'Projektliste');
 }
 
-// ---------- 10l: Update-Prüfung (nur auf Knopfdruck, lädt nur auf Wunsch) ----------
-// Quelle: app/update-quelle.json → { url } einer version.json { version, zip, notes }. Leer = noch nicht eingerichtet.
-function cmpVersion(a, b) {
-  const ta = String(a).match(/\d+|[a-z]+/gi) || [], tb = String(b).match(/\d+|[a-z]+/gi) || [];
-  for (let i = 0; i < Math.max(ta.length, tb.length); i++) {
-    const x = ta[i], y = tb[i];
-    if (x === undefined) return -1;
-    if (y === undefined) return 1;
-    const nx = /^\d+$/.test(x), ny = /^\d+$/.test(y);
-    if (nx && ny) { if (+x !== +y) return +x < +y ? -1 : 1; } else if (nx !== ny) return nx ? 1 : -1; else if (x !== y) return x < y ? -1 : 1;
-  }
-  return 0;
-}
-async function updateSource() {
-  try { const q = JSON.parse(await readText(fm.joinPath(appDir, 'update-quelle.json'))); return String(q.url || '').trim(); } catch (e) { return ''; }
-}
-let updateInfo = null;
-async function checkUpdate(wv) {
-  const url = await updateSource();
-  if (!/^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost)[:/])/.test(url)) { step('Update-Prüfung: keine Quelle eingerichtet'); return { state: 'noSource', current: VERSION }; }
-  try {
-    const rq = new Request(url);
-    rq.timeoutInterval = 15;
-    const d = await rq.loadJSON();
-    if (!d || !d.version) throw new Error('version.json ohne „version“');
-    updateInfo = { version: String(d.version), zip: String(d.zip || ''), notes: String(d.notes || '').slice(0, 2000) };
-    const newer = cmpVersion(updateInfo.version, VERSION) > 0;
-    step('Update-Prüfung: installiert ' + VERSION + ', verfügbar ' + updateInfo.version + (newer ? ' (neuer)' : ''));
-    return { state: newer ? 'newer' : 'current', current: VERSION, version: updateInfo.version, notes: updateInfo.notes };
-  } catch (e) {
-    step('Update-Prüfung fehlgeschlagen: ' + e);
-    return { state: 'error', current: VERSION, msg: String(e.message || e) };
-  }
-}
-async function downloadUpdate() {
-  if (!updateInfo || !/^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost)[:/])/.test(updateInfo.zip)) throw new Error('Keine Download-Adresse');
-  const rq = new Request(updateInfo.zip);
-  rq.timeoutInterval = 120;
-  const data = await rq.load();
-  const dir = fm.joinPath(root, 'updates');
-  if (!fm.fileExists(dir)) fm.createDirectory(dir, true);
-  const path = fm.joinPath(dir, 'ScriptSCAD-' + updateInfo.version.replace(/[^\w.\-]/g, '_') + '.zip');
-  if (fm.fileExists(path)) fm.remove(path);
-  fm.write(path, data);
-  step('Update geladen: ' + path.slice(root.length + 1) + ' (' + Math.round(data.getBytes().length / 1024) + ' KB)');
-  return path;
-}
+// ---------- 10l: Update-Prüfung → app/update.js (gemeinsam mit dem Slicer, seit 10p.3) ----------
+let updater = null;
 // ---------- 10i: Teile im Projekt (projects/<Ordner>/teile/) – in OpenSCAD per import("name.stl") nutzbar ----------
 const PART_RE = /\.(stl|off|obj|3mf|svg|dxf)$/i;
 const PART_MAX_MB = 25;
@@ -1021,21 +976,8 @@ async function handle(wv, a) {
       if (!res.opened) await run(wv, 'App.toast(' + js(T.slicerFailed) + ')').catch(() => {});
       return;
     }
-    case 'checkUpdate': {
-      const r = await checkUpdate(wv);
-      await run(wv, 'App.updateResult(' + js(js(r)) + ')', false, 10000, 'Update');
-      return;
-    }
-    case 'downloadUpdate': {
-      let r;
-      try { const path = await downloadUpdate(); r = { ok: true, path, rel: path.slice(root.length + 1), version: updateInfo.version }; } catch (e) { step('Update-Download fehlgeschlagen: ' + e); r = { ok: false, msg: String(e.message || e) }; }
-      await run(wv, 'App.updateDownloaded(' + js(js(r)) + ')', false, 10000, 'Update');
-      return;
-    }
-    case 'saveUpdateToFiles': {
-      const p = String(a.path);
-      if (p.indexOf(fm.joinPath(root, 'updates')) !== 0 || p.indexOf('..') >= 0 || !fm.fileExists(p)) throw new Error('Datei nicht gefunden: ' + p);
-      try { const r = await DocumentPicker.export(p); step('Update in Dateien gesichert: ' + js(r)); } catch (e) { step('Update sichern abgebrochen: ' + e); }
+    case 'checkUpdate': case 'downloadUpdate': case 'saveUpdateToFiles': { // 10l, seit 10p.3 in app/update.js
+      await updater.handle(a, (fn, r) => run(wv, 'App.' + fn + '(' + js(js(r)) + ')', false, 10000, 'Update'));
       return;
     }
     case 'exportFiles': {
@@ -1288,6 +1230,7 @@ async function main() {
   }
   for (const f of APP_FILES) await fm.downloadFileFromiCloud(fm.joinPath(appDir, f));
   store = new Function((await readText(fm.joinPath(appDir, 'projekte.js'))) + '\nreturn ProjectStore;')()(fm, root, step);
+  updater = new Function((await readText(fm.joinPath(appDir, 'update.js'))) + '\nreturn ScriptSCADUpdate;')()(fm, root, appDir, VERSION, step, readText);
   const moved = await store.migrate(); // 9e.3: alte Ordner „p2026…“ → Projektname
   if (moved) step('Projektordner umbenannt: ' + moved);
   await ensureProjects();

@@ -59,5 +59,12 @@ app/slicer/definitions/   (nur ScriptSCAD Slicer)
   Lizenz LGPL-3.0-or-later (Cura-Definitionen-LGPL-3.0.txt; Paket-Code MIT, © Cloud CNC).
   Quellcode: https://github.com/Ultimaker/Cura  https://github.com/Cloud-CNC/cura-wasm-definitions
 
+app/slicer/drucker.json   (nur ScriptSCAD Slicer, seit 10p)
+  Druckerbibliothek: Maschinendaten aus den Cura-Definitionen (s. o., LGPL-3.0-or-later) und aus den Druckerprofilen von
+  OrcaSlicer (resources/profiles, u. a. Bambu Lab, Anycubic, Creality, Elegoo, Prusa, Voron), Lizenz AGPL-3.0-or-later
+  (OrcaSlicer-Profile-AGPL-3.0.txt). Umgewandelt (nur Bettgröße, Düse, Dialekt, Start-/End-/Schicht-G-Code),
+  Werkzeuge: source/tools/fetch-orca-profiles.mjs, source/tools/build-slicer.mjs.
+  Quellcode: https://github.com/SoftFever/OrcaSlicer
+
 app/slicer/viewer.js   (nur ScriptSCAD Slicer)
   enthält three.js r170 (MIT-Lizenz, three.js-MIT.txt) und die eigene Datei source/src/slicer-viewer.js.
